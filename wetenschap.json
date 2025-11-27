@@ -1,0 +1,423 @@
+[
+  {
+    "question": "Welke planeet staat het dichtst bij de zon?",
+    "options": ["Venus", "Mars", "Mercurius", "Jupiter"],
+    "correct": "Mercurius",
+    "category": "wetenschap",
+    "niveau": 1
+  },
+  {
+    "question": "Wat is H2O beter bekend als?",
+    "options": ["Zuurstof", "Water", "Koolstof", "Alcohol"],
+    "correct": "Water",
+    "category": "wetenschap",
+    "niveau": 1
+  },
+  {
+    "question": "Hoeveel poten heeft een spin?",
+    "options": ["6", "8", "10", "12"],
+    "correct": "8",
+    "category": "wetenschap",
+    "niveau": 1
+  },
+  {
+    "question": "Welke gas ademen mensen in om te leven?",
+    "options": ["Koolstofdioxide", "Zuurstof", "Stikstof", "Helium"],
+    "correct": "Zuurstof",
+    "category": "wetenschap",
+    "niveau": 1
+  },
+  {
+    "question": "Hoeveel tanden heeft een volwassen mens meestal?",
+    "options": ["28", "30", "32", "34"],
+    "correct": "32",
+    "category": "wetenschap",
+    "niveau": 2
+  },
+  {
+    "question": "Wat meet je met een thermometer?",
+    "options": ["Lengte", "Tijd", "Temperatuur", "Gewicht"],
+    "correct": "Temperatuur",
+    "category": "wetenschap",
+    "niveau": 1
+  },
+  {
+    "question": "Welke planeet staat bekend als de rode planeet?",
+    "options": ["Venus", "Mars", "Saturnus", "Jupiter"],
+    "correct": "Mars",
+    "category": "wetenschap",
+    "niveau": 1
+  },
+  {
+    "question": "Hoeveel continenten zijn er op aarde?",
+    "options": ["5", "6", "7", "8"],
+    "correct": "7",
+    "category": "wetenschap",
+    "niveau": 1
+  },
+  {
+    "question": "Welke kracht trekt alles naar de aarde?",
+    "options": ["Magnetisme", "Zwaartekracht", "Windkracht", "Lichtkracht"],
+    "correct": "Zwaartekracht",
+    "category": "wetenschap",
+    "niveau": 1
+  },
+  {
+    "question": "Wat is de grootste planeet in ons zonnestelsel?",
+    "options": ["Aarde", "Saturnus", "Jupiter", "Neptunus"],
+    "correct": "Jupiter",
+    "category": "wetenschap",
+    "niveau": 2
+  },
+  {
+    "question": "Welke kleur heeft chlorofyl, het bladgroen in planten?",
+    "options": ["Rood", "Blauw", "Groen", "Geel"],
+    "correct": "Groen",
+    "category": "wetenschap",
+    "niveau": 1
+  },
+  {
+    "question": "Hoeveel harten heeft een octopus?",
+    "options": ["1", "2", "3", "4"],
+    "correct": "3",
+    "category": "wetenschap",
+    "niveau": 2
+  },
+  {
+    "question": "Wat gebruik je om dingen te vergroten in de klas?",
+    "options": ["Microscoop", "Telescoop", "Vergrootglas", "Camera"],
+    "correct": "Vergrootglas",
+    "category": "wetenschap",
+    "niveau": 1
+  },
+  {
+    "question": "Welke planeet heeft ringen die je goed kunt zien?",
+    "options": ["Mars", "Saturnus", "Venus", "Neptunus"],
+    "correct": "Saturnus",
+    "category": "wetenschap",
+    "niveau": 1
+  },
+  {
+    "question": "Wat is de hardste natuurlijke stof op aarde?",
+    "options": ["Goud", "Diamant", "IJzer", "Graniet"],
+    "correct": "Diamant",
+    "category": "wetenschap",
+    "niveau": 2
+  },
+  {
+    "question": "Welke dieren leggen eieren en geven melk?",
+    "options": ["Slangen", "Vogels", "Vleermuizen", "Vogelbekdieren"],
+    "correct": "Vogelbekdieren",
+    "category": "wetenschap",
+    "niveau": 3
+  },
+  {
+    "question": "Hoeveel tanden heeft een haai gemiddeld?",
+    "options": ["50", "100", "200", "300"],
+    "correct": "300",
+    "category": "wetenschap",
+    "niveau": 2
+  },
+  {
+    "question": "Welke planeet draait het snelst om de zon?",
+    "options": ["Mercurius", "Venus", "Aarde", "Mars"],
+    "correct": "Mercurius",
+    "category": "wetenschap",
+    "niveau": 2
+  },
+  {
+    "question": "Wat is het grootste orgaan van het menselijk lichaam?",
+    "options": ["Hart", "Lever", "Huid", "Longen"],
+    "correct": "Huid",
+    "category": "wetenschap",
+    "niveau": 2
+  },
+  {
+    "question": "Welke dieren leven zowel op land als in water?",
+    "options": ["Zoogdieren", "Amfibieën", "Reptielen", "Insecten"],
+    "correct": "Amfibieën",
+    "category": "wetenschap",
+    "niveau": 1
+  },
+  {
+    "question": "Hoeveel botten heeft een volwassen menselijk lichaam?",
+    "options": ["206", "210", "250", "300"],
+    "correct": "206",
+    "category": "wetenschap",
+    "niveau": 3
+  },
+  {
+    "question": "Welke planeet wordt soms 'de avondster' genoemd?",
+    "options": ["Venus", "Mars", "Jupiter", "Saturnus"],
+    "correct": "Venus",
+    "category": "wetenschap",
+    "niveau": 2
+  },
+  {
+    "question": "Wat is de kleinste eenheid van leven?",
+    "options": ["Cel", "Molecuul", "Atomen", "Weefsel"],
+    "correct": "Cel",
+    "category": "wetenschap",
+    "niveau": 2
+  },
+  {
+    "question": "Welke gas zorgt voor het broeikaseffect?",
+    "options": ["Zuurstof", "Koolstofdioxide", "Stikstof", "Waterstof"],
+    "correct": "Koolstofdioxide",
+    "category": "wetenschap",
+    "niveau": 2
+  },
+  {
+    "question": "Hoeveel planeten heeft ons zonnestelsel?",
+    "options": ["7", "8", "9", "10"],
+    "correct": "8",
+    "category": "wetenschap",
+    "niveau": 1
+  },
+  {
+    "question": "Wat is de grootste oceaan op aarde?",
+    "options": ["Atlantische Oceaan", "Indische Oceaan", "Stille Oceaan", "Arctische Oceaan"],
+    "correct": "Stille Oceaan",
+    "category": "wetenschap",
+    "niveau": 2
+  },
+  {
+    "question": "Welke energiebron komt van de zon?",
+    "options": ["Windenergie", "Zonne-energie", "Waterkracht", "Aardwarmte"],
+    "correct": "Zonne-energie",
+    "category": "wetenschap",
+    "niveau": 1
+  },
+  {
+    "question": "Hoeveel tanden heeft een volwassen paard gemiddeld?",
+    "options": ["36", "40", "44", "48"],
+    "correct": "40",
+    "category": "wetenschap",
+    "niveau": 3
+  },
+  {
+    "question": "Welke planeet heeft de meeste manen?",
+    "options": ["Jupiter", "Saturnus", "Mars", "Neptunus"],
+    "correct": "Saturnus",
+    "category": "wetenschap",
+    "niveau": 3
+  },
+  {
+    "question": "Wat is de lichtsnelheid ongeveer?",
+    "options": ["300 km/s", "300.000 km/s", "30.000 km/s", "3.000 km/s"],
+    "correct": "300.000 km/s",
+    "category": "wetenschap",
+    "niveau": 3
+  },
+  {
+    "question": "Welke dieren zijn koudbloedig?",
+    "options": ["Zoogdieren", "Reptielen", "Vogels", "Amfibieën"],
+    "correct": "Reptielen",
+    "category": "wetenschap",
+    "niveau": 2
+  },
+  {
+    "question": "Wat is de grootste woestijn op aarde?",
+    "options": ["Sahara", "Gobi", "Antarctica", "Kalahari"],
+    "correct": "Antarctica",
+    "category": "wetenschap",
+    "niveau": 3
+  },
+  {
+    "question": "Welke planeet heeft de kortste dag?",
+    "options": ["Jupiter", "Mars", "Venus", "Saturnus"],
+    "correct": "Jupiter",
+    "category": "wetenschap",
+    "niveau": 3
+  },
+  {
+    "question": "Wat is de belangrijkste energiebron voor planten?",
+    "options": ["Water", "Zonlicht", "Zuurstof", "Mineralen"],
+    "correct": "Zonlicht",
+    "category": "wetenschap",
+    "niveau": 1
+  },
+  {
+    "question": "Hoeveel liter bloed heeft een mens gemiddeld?",
+    "options": ["3", "5", "7", "9"],
+    "correct": "5",
+    "category": "wetenschap",
+    "niveau": 2
+  },
+  {
+    "question": "Welke planeet is het verst van de zon?",
+    "options": ["Uranus", "Neptunus", "Saturnus", "Jupiter"],
+    "correct": "Neptunus",
+    "category": "wetenschap",
+    "niveau": 2
+  },
+  {
+    "question": "Wat is de grootste vogel ter wereld?",
+    "options": ["Arend", "Struisvogel", "Condor", "Pelikan"],
+    "correct": "Struisvogel",
+    "category": "wetenschap",
+    "niveau": 1
+  },
+  {
+    "question": "Welke gas gebruiken planten bij fotosynthese?",
+    "options": ["Zuurstof", "Koolstofdioxide", "Stikstof", "Helium"],
+    "correct": "Koolstofdioxide",
+    "category": "wetenschap",
+    "niveau": 2
+  },
+  {
+    "question": "Hoeveel tanden wisselt een kind gemiddeld?",
+    "options": ["10", "20", "30", "40"],
+    "correct": "20",
+    "category": "wetenschap",
+    "niveau": 1
+  },
+  {
+    "question": "Wat is de grootste landdier op aarde?",
+    "options": ["Olifant", "Nijlpaard", "Neushoorn", "Giraf"],
+    "correct": "Olifant",
+    "category": "wetenschap",
+    "niveau": 1
+  },
+  {
+    "question": "Wat is de grootste planeet die dichter bij de zon staat dan Saturnus?",
+    "options": ["Jupiter", "Mars", "Venus", "Aarde"],
+    "correct": "Jupiter",
+    "category": "wetenschap",
+    "niveau": 2
+  },
+  {
+    "question": "Welke stof ademen mensen uit?",
+    "options": ["Zuurstof", "Koolstofdioxide", "Stikstof", "Waterstof"],
+    "correct": "Koolstofdioxide",
+    "category": "wetenschap",
+    "niveau": 1
+  },
+  {
+    "question": "Hoeveel maanden heeft een jaar?",
+    "options": ["10", "11", "12", "13"],
+    "correct": "12",
+    "category": "wetenschap",
+    "niveau": 1
+  },
+  {
+    "question": "Welke planeet heeft de naam van de Romeinse god van de zee?",
+    "options": ["Mars", "Neptunus", "Saturnus", "Venus"],
+    "correct": "Neptunus",
+    "category": "wetenschap",
+    "niveau": 2
+  },
+  {
+    "question": "Wat is de grootste interne orgaan van de mens?",
+    "options": ["Hart", "Lever", "Longen", "Maag"],
+    "correct": "Lever",
+    "category": "wetenschap",
+    "niveau": 2
+  },
+  {
+    "question": "Welke dieren kunnen vliegen?",
+    "options": ["Vogels", "Honden", "Katten", "Paarden"],
+    "correct": "Vogels",
+    "category": "wetenschap",
+    "niveau": 1
+  },
+  {
+    "question": "Wat is de kleinste planeet in ons zonnestelsel?",
+    "options": ["Mars", "Mercurius", "Venus", "Pluto"],
+    "correct": "Mercurius",
+    "category": "wetenschap",
+    "niveau": 2
+  },
+  {
+    "question": "Hoeveel ogen heeft een bij meestal?",
+    "options": ["2", "4", "5", "6"],
+    "correct": "5",
+    "category": "wetenschap",
+    "niveau": 3
+  },
+  {
+    "question": "Welke energiebron komt uit stromend water?",
+    "options": ["Windenergie", "Zonne-energie", "Waterkracht", "Aardwarmte"],
+    "correct": "Waterkracht",
+    "category": "wetenschap",
+    "niveau": 2
+  },
+  {
+    "question": "Wat is de grootste kat ter wereld?",
+    "options": ["Leeuw", "Tijger", "Jaguar", "Luipaard"],
+    "correct": "Tijger",
+    "category": "wetenschap",
+    "niveau": 2
+  },
+  {
+    "question": "Welke planeet heeft de langste dag?",
+    "options": ["Venus", "Mars", "Jupiter", "Saturnus"],
+    "correct": "Venus",
+    "category": "wetenschap",
+    "niveau": 3
+  },
+  {
+    "question": "Wat is de belangrijkste voedingsstof in brood?",
+    "options": ["Vet", "Eiwit", "Koolhydraten", "Vitamines"],
+    "correct": "Koolhydraten",
+    "category": "wetenschap",
+    "niveau": 1
+  },
+  {
+    "question": "Welke dieren hebben schubben?",
+    "options": ["Zoogdieren", "Reptielen", "Vogels", "Amfibieën"],
+    "correct": "Reptielen",
+    "category": "wetenschap",
+    "niveau": 1
+  },
+  {
+    "question": "Wat is de grootste planeet die verder van de zon staat dan de aarde?",
+    "options": ["Mars", "Jupiter", "Saturnus", "Neptunus"],
+    "correct": "Jupiter",
+    "category": "wetenschap",
+    "niveau": 2
+  },
+  {
+    "question": "Hoeveel tanden heeft een volwassen hond gemiddeld?",
+    "options": ["32", "36", "40", "42"],
+    "correct": "42",
+    "category": "wetenschap",
+    "niveau": 3
+  },
+  {
+    "question": "Welke gas zit het meest in de lucht?",
+    "options": ["Zuurstof", "Stikstof", "Koolstofdioxide", "Waterstof"],
+    "correct": "Stikstof",
+    "category": "wetenschap",
+    "niveau": 2
+  },
+  {
+    "question": "Wat is de grootste planeet die dichter bij de zon staat dan Neptunus?",
+    "options": ["Saturnus", "Jupiter", "Uranus", "Mars"],
+    "correct": "Jupiter",
+    "category": "wetenschap",
+    "niveau": 2
+  },
+  {
+    "question": "Welke dieren hebben een skelet van kraakbeen in plaats van botten?",
+    "options": ["Haaien", "Dolfijnen", "Slangen", "Kikkers"],
+    "correct": "Haaien",
+    "category": "wetenschap",
+    "niveau": 3
+  },
+  {
+    "question": "Wat is de grootste planeet die verder van de zon staat dan Saturnus?",
+    "options": ["Uranus", "Neptunus", "Jupiter", "Mars"],
+    "correct": "Uranus",
+    "category": "wetenschap",
+    "niveau": 2
+  },
+  {
+    "question": "Welke dieren hebben een harde schaal en leven vaak in zee?",
+    "options": ["Krabben", "Slangen", "Vogels", "Katten"],
+    "correct": "Krabben",
+    "category": "wetenschap",
+    "niveau": 1
+  }
+]
+

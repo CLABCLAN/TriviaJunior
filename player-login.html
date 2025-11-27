@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8">
+  <title>Speler Inloggen / Registreren</title>
+  <link rel="stylesheet" href="styles/player-login.css">
+</head>
+<body>
+  <div class="login-container">
+    <h1>Speler Inloggen / Registreren</h1>
+    <form id="playerForm">
+      <label for="username">Gebruikersnaam:</label>
+      <input type="text" id="username" name="username" required>
+
+      <label for="password">Wachtwoord:</label>
+      <input type="password" id="password" name="password" required>
+
+      <div class="buttons">
+        <button type="submit" id="loginBtn">Inloggen</button>
+        <button type="button" id="registerBtn">Registreren</button>
+      </div>
+    </form>
+    <p id="message"></p>
+    <a href="login.html" class="back-link">← Terug</a>
+  </div>
+
+  <!-- Koppel externe JS -->
+  <script type="module" src="player-login.js"></script>
+</body>
+</html>

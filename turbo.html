@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Trivia Turbo</title>
+  <link rel="stylesheet" href="styles/race.css" />
+</head>
+<body>
+  <div class="game-container">
+    <div class="track">
+      <div class="road">
+        <div class="lane-stripes">
+          <!-- Je stripes -->
+          <div class="stripe"></div>
+          <div class="stripe"></div>
+          <div class="stripe"></div>
+          <div class="stripe"></div>
+          <div class="stripe"></div>
+          <div class="stripe"></div>
+          <div class="stripe"></div>
+          <div class="stripe"></div>
+          <div class="stripe"></div>
+          <div class="stripe"></div>
+          <div class="stripe"></div>
+          <div class="stripe"></div>
+          <div class="stripe"></div>
+          <div class="stripe"></div>
+          <div class="stripe"></div>
+          <div class="stripe"></div>
+          <div class="stripe"></div>
+          <div class="stripe"></div>
+          <div class="stripe"></div>
+        </div>
+      </div>
+      <img src="assets/car.png" alt="Red Car" class="car" id="car" />
+      <img src="assets/flag.png" alt="flag" class="flag" id="flag" />
+      <div id="timer" class="timer-display">⏱️ Tijd: 0.00s</div>
+    </div>
+
+    <!-- Streak display -->
+    <div class="streak-box">
+      <img src="assets/streak.png" alt="Streak Icon" class="streak-icon" />
+      <span id="streak-count">0</span>
+    </div>
+
+    <!-- Vraag + antwoorden -->
+    <div class="question-box" id="question-box">
+      
+      <!-- Overlay voor start (samengevoegd: niveau + startknop) -->
+      <div id="overlay-start" class="overlay start">
+        <div id="niveau-select">
+          <select id="niveau">
+            <option value="1">Niveau 1</option>
+            <option value="2">Niveau 2</option>
+            <option value="3">Niveau 3</option>
+          </select>
+        </div>
+        <button id="start-btn">Start</button>
+      </div>
+
+      <!-- Overlay voor fouten -->
+      <div id="overlay-error" class="overlay error hidden">
+        <span>Helaas!</span>
+      </div>
+
+      <img id="reset-btn" src="assets/reset.png" alt="Reset" class="reset-icon">
+      <div id="question">Vraag komt hier...</div>
+      <div class="answers">
+        <button></button>
+        <button></button>
+        <button></button>
+      </div>
+    </div>
+
+    <!-- Leaderboard -->
+    <div class="leaderboard">
+      <h2>🏆 Highscores</h2>
+      <ol id="highscore-list">
+        <!-- Dynamisch gevuld via script.js -->
+      </ol>
+    </div>
+  </div>
+
+  <!-- Firebase SDK -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
+  import { getFirestore } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+
+  // Config ophalen uit een extern JSON-bestand
+  async function loadFirebaseConfig() {
+    const response = await fetch('firebaseConfig.json'); // pad naar je JSON-bestand
+    if (!response.ok) {
+      throw new Error("Kon firebaseConfig.json niet laden");
+    }
+    return await response.json();
+  }
+
+  // Initialiseer Firebase met config uit JSON
+  loadFirebaseConfig().then(firebaseConfig => {
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    // Maak Firestore beschikbaar voor andere scripts
+    window.db = db;
+  }).catch(error => {
+    console.error("Fout bij laden Firebase config:", error);
+  });
+</script>
+
+
+  <!-- Jouw game logic -->
+  <script type="module" src="turbo.js"></script>
+</body>
+</html>
