@@ -1,0 +1,95 @@
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f0f8ff; /* Lichtblauw als basis */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    margin: 0;
+}
+
+.container {
+    background-color: white;
+    padding: 30px;
+    border-radius: 15px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    text-align: center;
+    width: 90%;
+    max-width: 600px;
+}
+
+h1 {
+    color: #4682b4; /* Blauw-grijs */
+    margin-bottom: 20px;
+}
+
+#score-area {
+    font-size: 1.2em;
+    margin-bottom: 20px;
+    color: #333;
+}
+
+#animal-image {
+    width: 100%;
+    max-height: 300px;
+    object-fit: cover;
+    border: 5px solid #ffa07a; /* Lichte oranje rand */
+    border-radius: 10px;
+    margin-bottom: 20px;
+}
+
+#options-area {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+.option-button {
+    padding: 15px;
+    font-size: 1.1em;
+    background-color: #add8e6; /* Lichtblauw knopje */
+    color: #000;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.3s, transform 0.1s;
+}
+
+.option-button:hover {
+    background-color: #87ceeb;
+    transform: translateY(-2px);
+}
+
+/* Feedback Stijlen */
+.correct {
+    background-color: #90ee90; /* Lichtgroen */
+    border: 3px solid #3cb371; /* Groen */
+    pointer-events: none;
+}
+
+.incorrect {
+    background-color: #ffb6c1; /* Lichtrood */
+    border: 3px solid #dc143c; /* Rood */
+    pointer-events: none;
+}
+
+.hidden {
+    display: none;
+}
+
+#next-button {
+    padding: 10px 20px;
+    background-color: #ff6347; /* Tomaatrood */
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 1.1em;
+}
+
+.message {
+    margin-top: 10px;
+    font-weight: bold;
+    font-size: 1.2em;
+}
