@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<title>Luchtballon Rekenspel</title>
+<style>
+body {
+    margin:0;
+    overflow:hidden;
+    font-family: Arial, sans-serif;
+}
+
+/* Game area */
+#gameArea {
+    width:100vw;
+    height:100vh;
+    background: linear-gradient(#82cfff, #bde0ff);
+    position:relative;
+    overflow:hidden;
+}
+
+/* Wolken */
+.cloud {
+    position:absolute;
+    background: #fff;
+    border-radius: 50%;
+    opacity:0.9;
+}
+
+/* Gras onderaan */
+#grass {
+    position:absolute;
+    bottom:0;
+    left:0;
+    width:100%;
+    height:80px;
+    background: linear-gradient(#4CAF50, #2E7D32);
+    z-index:1;
+}
+
+/* Start scherm */
+#startScreen {
+    position:absolute;
+    top:0; left:0;
+    width:100vw;
+    height:100vh;
+    background: linear-gradient(#82cfff, #bde0ff);
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+    font-size:24px;
+    text-align:center;
+    padding:20px;
+    z-index:10;
+}
+
+#startScreen button {
+    padding:15px 30px;
+    font-size:22px;
+    margin-top:20px;
+    cursor:pointer;
+    background-color:#ff4747;
+    color:white;
+    border:none;
+    border-radius:8px;
+}
+
+/* Elementen die pas na start zichtbaar worden */
+#balloon, #pump, #ui, #finish {
+    display:none;
+    z-index:2;
+}
+
+/* Ballon zonder transition zodat hij direct beweegt */
+#balloon {
+    position:absolute;
+    width:120px;
+    height:180px;
+    left:50%;
+    transform:translateX(-50%);
+}
+
+/* Pomper groter gemaakt */
+#pump {
+    position:absolute;
+    bottom: 20px;
+    left:900px;
+    width:160px;
+    height:160px;
+    transition: transform 0.2s ease;
+}
+
+/* Finishline zichtbaar bovenaan */
+#finish {
+    position:absolute;
+    top:0px; 
+    left:50%;
+    transform:translateX(-50%);
+    width:500px;
+    height:40px;
+    background: repeating-linear-gradient(
+        90deg,
+        black 0px,
+        black 40px,
+        white 40px,
+        white 80px
+    );
+    border:3px solid #000;
+}
+
+/* UI */
+#ui {
+    position:absolute;
+    bottom:20px;
+    right:20px;
+    padding:20px;
+    background: rgba(255,255,255,0.9);
+    border-radius:10px;
+    text-align:center;
+}
+
+#question {
+    font-size:28px;
+    font-weight:bold;
+    margin-bottom:10px;
+}
+
+input {
+    font-size:24px;
+    padding:5px;
+    width:120px;
+    text-align:center;
+}
+
+/* Win / Lose scherm */
+#loseScreen,
+#winScreen {
+    position:absolute;
+    top:0; left:0;
+    width:100vw;
+    height:100vh;
+    background: rgba(0,0,0,0.75);
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+    color:white;
+    font-size:40px;
+    display:none;
+}
+
+#loseScreen button,
+#winScreen button {
+    padding:15px 30px;
+    font-size:24px;
+    margin-top:20px;
+    cursor:pointer;
+    background-color:#ff4747;
+    color:white;
+    border:none;
+    border-radius:8px;
+}
+
+/* Pomper animatie */
+.pump-active {
+    transform: scale(1.2);
+}
+</style>
+</head>
+<body>
+
+<div id="gameArea">
+
+    <!-- Gras onderaan -->
+    <div id="grass"></div>
+
+    <!-- Wolken -->
+    <div class="cloud" style="width:100px; height:60px; top:50px; left:100px;"></div>
+    <div class="cloud" style="width:140px; height:80px; top:120px; left:500px;"></div>
+    <div class="cloud" style="width:120px; height:70px; top:80px; left:900px;"></div>
+
+    <!-- Start scherm -->
+    <div id="startScreen">
+        <div>Welkom bij het Luchtballon Rekenspel! 🎈<br><br>
+        Beantwoord de rekenvragen zo snel mogelijk om de ballon omhoog te houden.<br>
+        Correct = stijgen, fout = dalen.<br>
+        Gebruik ENTER om je antwoord in te sturen!</div>
+        <button onclick="startGame()">Start Game</button>
+    </div>
+
+    <!-- Finishline -->
+    <div id="finish"></div>
+
+    <!-- Ballon -->
+    <div id="balloon" style="top:40vh;">
+            <img src="balloon.png" width="120" height="180" alt="Luchtballon">
+    </div>
+
+    <!-- Pomper -->
+    <div id="pump">
+        <svg id="cartoonPump" width="160" height="160" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
+            <rect x="50" y="40" width="20" height="60" fill="#8B5A2B" stroke="#5C3D1B" stroke-width="2" rx="4" ry="4"/>
+            <rect x="55" y="10" width="10" height="30" fill="#FF6F61" stroke="#CC4B47" stroke-width="2" rx="2" ry="2"/>
+            <rect x="40" y="0" width="40" height="10" fill="#FF4747" stroke="#CC0000" stroke-width="2" rx="3" ry="3"/>
+            <line x1="60" y1="10" x2="60" y2="60" stroke="#555" stroke-width="4" stroke-linecap="round"/>
+            <circle cx="60" cy="60" r="4" fill="#FF4747" stroke="#CC0000" stroke-width="2"/>
+        </svg>
+    </div>
+
+    <!-- UI -->
+    <div id="ui">
+        <div id="question">?</div>
+        <input id="answer" type="number" autocomplete="off">
+    </div>
+
+    <!-- Win / Lose -->
+    <div id="loseScreen">
+        GAME OVER – Je ballon is gecrasht!
+        <button onclick="tryAgain()">Try Again</button>
+    </div>
+    <div id="winScreen">
+        GEWONNEN! Je hebt de finish gehaald!
+        <button onclick="tryAgain()">Speel opnieuw</button>
+    </div>
+
+</div>
+
+<script>
+// variabelen
+let balloon = document.getElementById("balloon");
+let finish = document.getElementById("finish");
+let pump = document.getElementById("pump");
+let answerInput = document.getElementById("answer");
+let startScreen = document.getElementById("startScreen");
+let topPos = 40;
+let correctAnswer;
+let gameRunning = false;
+let streak = 0; // aantal correct achter elkaar
+
+/* Start game */
+function startGame() {
+    startScreen.style.display = "none";
+    balloon.style.display = "block";
+    pump.style.display = "block";
+    document.getElementById("ui").style.display = "block";
+    finish.style.display = "block";
+    gameRunning = true;
+    topPos = 40;
+    streak = 0;
+    newQuestion();
+    answerInput.focus();
+}
+
+/* Nieuwe rekenvraag */
+function newQuestion() {
+    const types = ["keer","deel","plus","min"];
+    const choice = types[Math.floor(Math.random()*types.length)];
+    let a,b;
+    if(choice === "keer") {
+        a = Math.floor(Math.random()*12)+1;
+        b = Math.floor(Math.random()*12)+1;
+        correctAnswer = a*b;
+        document.getElementById("question").textContent = `${a} × ${b} = ?`;
+    } else if(choice === "deel") {
+        b = Math.floor(Math.random()*12)+1;
+        correctAnswer = Math.floor(Math.random()*12)+1;
+        a = b * correctAnswer;
+        document.getElementById("question").textContent = `${a} ÷ ${b} = ?`;
+    } else if(choice === "plus") {
+        a = Math.floor(Math.random()*50)+1;
+        b = Math.floor(Math.random()*50)+1;
+        correctAnswer = a + b;
+        document.getElementById("question").textContent = `${a} + ${b} = ?`;
+    } else { // min
+        a = Math.floor(Math.random()*50)+10;
+        b = Math.floor(Math.random()*a)+1;
+        correctAnswer = a - b;
+        document.getElementById("question").textContent = `${a} - ${b} = ?`;
+    }
+}
+
+/* Submit answer */
+function submitAnswer() {
+    if(!gameRunning) return;
+    let user = Number(answerInput.value);
+    answerInput.value = "";
+
+    if(user === correctAnswer){
+        streak++;
+        if(streak >= 8){ // nu 8 vragen voor finish
+            topPos = 10; // direct naar finish
+        } else {
+            topPos -= 8; // iets kleinere stijging = langzamer
+            if(topPos < 10) topPos = 10;
+        }
+        pump.classList.add("pump-active");
+        setTimeout(()=> pump.classList.remove("pump-active"),200);
+    } else {
+        streak = 0; // reset streak bij fout
+        topPos += 8;
+        if(topPos > 85) topPos = 85;
+    }
+
+    balloon.style.top = topPos + "vh"; // direct toepassen
+    checkGameState();
+    newQuestion();
+}
+
+answerInput.addEventListener("keydown", function(e){
+    if(e.key === "Enter") submitAnswer();
+});
+
+/* Check game state */
+function checkGameState(){
+    if(topPos <= 10){
+        document.getElementById("winScreen").style.display = "flex";
+        endGame();
+    }
+    if(topPos >= 85){
+        document.getElementById("loseScreen").style.display = "flex";
+        endGame();
+    }
+}
+
+function endGame(){
+    gameRunning = false;
+}
+
+/* Try Again */
+function tryAgain(){
+    document.getElementById("loseScreen").style.display = "none";
+    document.getElementById("winScreen").style.display = "none";
+    balloon.style.top = "40vh";
+    streak = 0;
+    startGame();
+}
+</script>
+
+</body>
+</html>
