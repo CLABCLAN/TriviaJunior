@@ -4,7 +4,146 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Topografie Mini Game</title>
-  <link rel="stylesheet" href="style.css">
+  
+  <style>
+    body {
+  font-family: Arial, sans-serif;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin: 0;
+  padding: 20px;
+  background: linear-gradient(135deg, #f6d365, #fda085, #a1c4fd, #c2e9fb);
+  background-size: 600% 600%;
+  animation: gradientBG 20s ease infinite;
+  position: relative;
+  overflow: hidden;
+}
+
+@keyframes gradientBG {
+  0% {background-position: 0% 50%;}
+  50% {background-position: 100% 50%;}
+  100% {background-position: 0% 50%;}
+}
+
+h1, .instructions, .score-box, .question-box, #message, #restart-btn, .continent-info {
+  position: relative;
+  z-index: 1;
+}
+
+.instructions {
+  margin-bottom: 15px;
+  text-align: center;
+  background: rgba(255,255,255,0.3);
+  padding: 10px 20px;
+  border-radius: 8px;
+}
+
+.continent-info {
+  font-size: 20px;
+  font-weight: bold;
+  margin-bottom: 10px;
+  padding: 8px 16px;
+  background: rgba(100,200,255,0.4);
+  border-radius: 8px;
+  color: #003366;
+}
+
+.score-box {
+  font-size: 18px;
+  margin-bottom: 10px;
+}
+
+.question-box {
+  font-size: 28px;
+  font-weight: bold;
+  margin-bottom: 20px;
+  padding: 10px 20px;
+  background: rgba(255,255,255,0.5);
+  border-radius: 10px;
+  text-align: center;
+  width: 90%;
+  max-width: 700px;
+}
+
+.map-container {
+  position: relative;
+  width: 900px;
+  height: 600px;
+  overflow: hidden;
+  border: 2px solid #333;
+  border-radius: 10px;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+}
+
+#map {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  user-select: none;
+}
+
+.pin {
+  width: 20px;
+  height: 20px;
+  background-color: red;
+  border-radius: 50%;
+  position: absolute;
+  transform: translate(-50%, -50%);
+  border: 2px solid white;
+  z-index: 2;
+}
+
+.correct-pin {
+  background-color: green;
+  animation: pulse 0.5s ease-in-out 2;
+}
+
+@keyframes pulse {
+  0%, 100% { transform: translate(-50%, -50%) scale(1); }
+  50% { transform: translate(-50%, -50%) scale(1.3); }
+}
+
+#message {
+  margin-top: 15px;
+  font-size: 18px;
+  font-weight: bold;
+}
+
+#restart-btn {
+  margin-top: 15px;
+  padding: 10px 20px;
+  font-size: 16px;
+  background-color: #4caf50;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  z-index: 1;
+}
+
+#restart-btn:hover {
+  background-color: #45a049;
+}
+
+.confetti {
+  position: fixed;
+  width: 8px;
+  height: 8px;
+  background-color: red;
+  top: 0;
+  animation: fall 2s linear forwards;
+  pointer-events: none;
+  border-radius: 50%;
+  z-index: 3;
+}
+
+@keyframes fall {
+  to {
+    transform: translateY(100vh) rotate(360deg);
+  }
+}
+  </style>
 </head>
 <body>
 
@@ -14,6 +153,8 @@
   Beantwoord de vragen door op de kaart te klikken en een pin op de juiste plek te zetten!
 </div>
 
+<div class="continent-info" id="continent-info"></div>
+
 <div class="score-box">
   Score: <span id="score">0</span> / <span id="total">0</span>
 </div>
@@ -21,12 +162,158 @@
 <div class="question-box" id="question-box"></div>
 
 <div class="map-container">
-  <img id="map" src="images/map.jpg" alt="Kaart">
+  <img id="map" src="assets/map.png" alt="Kaart">
 </div>
 
 <div id="message"></div>
 <button id="restart-btn">Opnieuw beginnen</button>
 
-<script src="script.js"></script>
+<script>
+const questionsByContinent = {
+  "Europa": [
+    { question: "Klik op Europa: Plaats de rode pin op het continent Europa", correctPosition: {x: 440, y: 215} },
+    { question: "Klik op de Middellandse Zee: Plaats de rode pin op de Middellandse Zee", correctPosition: {x: 480, y: 280} }
+  ],
+  "Afrika": [
+    { question: "Klik op Afrika: Plaats de rode pin op het continent Afrika", correctPosition: {x: 475, y: 350} },
+    { question: "Klik op de Sahara: Plaats de rode pin op de Sahara-woestijn", correctPosition: {x: 480, y: 360} }
+  ],
+  "Azië": [
+    { question: "Klik op Azië: Plaats de rode pin op het continent Azië", correctPosition: {x: 700, y: 250} },
+    { question: "Klik op de Himalaya: Plaats de rode pin op de bergketen Himalaya", correctPosition: {x: 710, y: 290} },
+    { question: "Klik op Mount Everest: Plaats de rode pin op de top van Mount Everest", correctPosition: {x: 720, y: 285} },
+    { question: "Klik op Japan: Plaats de rode pin op Japan", correctPosition: {x: 820, y: 270} }
+  ],
+  "Noord-Amerika": [
+    { question: "Klik op Noord-Amerika: Plaats de rode pin op het continent Noord-Amerika", correctPosition: {x: 200, y: 240} },
+    { question: "Klik op Groenland: Plaats de rode pin op Groenland", correctPosition: {x: 330, y: 120} }
+  ],
+  "Zuid-Amerika": [
+    { question: "Klik op Zuid-Amerika: Plaats de rode pin op het continent Zuid-Amerika", correctPosition: {x: 280, y: 470} },
+    { question: "Klik op de Amazone: Plaats de rode pin op de rivier Amazone", correctPosition: {x: 300, y: 430} }
+  ],
+  "Australië": [
+    { question: "Klik op Australië: Plaats de rode pin op het continent Australië", correctPosition: {x: 780, y: 490} }
+  ],
+  "Antarctica": [
+    { question: "Klik op Antarctica: Plaats de rode pin op het continent Antarctica", correctPosition: {x: 450, y: 570} },
+    { question: "Klik op de Zuidpool: Plaats de rode pin op de Zuidpool", correctPosition: {x: 450, y: 580} }
+  ],
+  "Oceanen": [
+    { question: "Klik op de oceaan links van Afrika: Plaats de rode pin op de Atlantische Oceaan", correctPosition: {x: 350, y: 400} },
+    { question: "Klik op de oceaan rechts van Afrika: Plaats de rode pin op de Indische Oceaan", correctPosition: {x: 650, y: 430} }
+  ],
+  "Poolgebieden": [
+    { question: "Klik op de Noordpool: Plaats de rode pin op de Noordpool", correctPosition: {x: 450, y: 30} }
+  ]
+};
+
+let allQuestions = [];
+let currentQ = 0;
+let score = 0;
+let canClick = true;
+const tolerance = 50;
+
+const questionBox = document.getElementById('question-box');
+const continentInfo = document.getElementById('continent-info');
+const map = document.getElementById('map');
+const mapContainer = document.querySelector('.map-container');
+const message = document.getElementById('message');
+const restartBtn = document.getElementById('restart-btn');
+const scoreDisplay = document.getElementById('score');
+const totalDisplay = document.getElementById('total');
+
+function initGame() {
+  allQuestions = [];
+  for (const continent in questionsByContinent) {
+    questionsByContinent[continent].forEach(q => {
+      allQuestions.push({ ...q, continent: continent });
+    });
+  }
+  totalDisplay.textContent = allQuestions.length;
+}
+
+function showQuestion() {
+  if(currentQ >= allQuestions.length){
+    questionBox.textContent = `Alle vragen zijn beantwoord! 🎉 Score: ${score} / ${allQuestions.length}`;
+    continentInfo.textContent = "";
+    return;
+  }
+  const current = allQuestions[currentQ];
+  continentInfo.textContent = `Continent/Gebied: ${current.continent}`;
+  questionBox.textContent = current.question;
+  message.textContent = "";
+}
+
+function showConfetti() {
+  for(let i=0;i<100;i++){
+    const confetti = document.createElement('div');
+    confetti.classList.add('confetti');
+    confetti.style.left = Math.random()*window.innerWidth + 'px';
+    confetti.style.backgroundColor = `hsl(${Math.random()*360},100%,50%)`;
+    document.body.appendChild(confetti);
+    setTimeout(()=> confetti.remove(), 2000);
+  }
+}
+
+mapContainer.addEventListener('click', e => {
+  if(currentQ >= allQuestions.length || !canClick) return;
+
+  canClick = false;
+
+  const rect = map.getBoundingClientRect();
+  const x = e.clientX - rect.left;
+  const y = e.clientY - rect.top;
+
+  const userPin = document.createElement('div');
+  userPin.classList.add('pin');
+  userPin.style.left = x + 'px';
+  userPin.style.top = y + 'px';
+  mapContainer.appendChild(userPin);
+
+  const correct = allQuestions[currentQ].correctPosition;
+  const dx = x - correct.x;
+  const dy = y - correct.y;
+  const isCorrect = Math.sqrt(dx*dx + dy*dy) <= tolerance;
+
+  setTimeout(() => {
+    const correctPin = document.createElement('div');
+    correctPin.classList.add('pin', 'correct-pin');
+    correctPin.style.left = correct.x + 'px';
+    correctPin.style.top = correct.y + 'px';
+    mapContainer.appendChild(correctPin);
+
+    if(isCorrect){
+      message.textContent = "Correct! 🎉 +1 punt";
+      score++;
+      scoreDisplay.textContent = score;
+      showConfetti();
+    } else {
+      message.textContent = "Fout! Het correcte antwoord wordt in het groen getoond.";
+    }
+
+    setTimeout(() => {
+      userPin.remove();
+      correctPin.remove();
+      currentQ++;
+      canClick = true;
+      showQuestion();
+    }, 2000);
+  }, 500);
+});
+
+restartBtn.addEventListener('click', () => {
+  document.querySelectorAll('.pin').forEach(pin=>pin.remove());
+  currentQ = 0;
+  score = 0;
+  scoreDisplay.textContent = score;
+  canClick = true;
+  showQuestion();
+  message.textContent = "";
+});
+
+initGame();
+showQuestion();
+</script>
 </body>
 </html>
