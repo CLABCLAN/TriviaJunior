@@ -17,7 +17,6 @@
   background-size: 600% 600%;
   animation: gradientBG 20s ease infinite;
   position: relative;
-  overflow: hidden;
 }
 
 @keyframes gradientBG {
@@ -68,8 +67,8 @@ h1, .instructions, .score-box, .question-box, #message, #restart-btn, .continent
 
 .map-container {
   position: relative;
-  width: 900px;
-  height: 600px;
+  /* De container krimpt nu om de afbeelding te passen */
+  display: inline-block; 
   overflow: hidden;
   border: 2px solid #333;
   border-radius: 10px;
@@ -77,9 +76,10 @@ h1, .instructions, .score-box, .question-box, #message, #restart-btn, .continent
 }
 
 #map {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
+  /* Maximale grootte voor de kaart, behoudt aspect ratio */
+  max-width: 900px;
+  max-height: 600px;
+  display: block; /* Voorkomt extra ruimte onder de afbeelding */
   user-select: none;
 }
 
@@ -162,49 +162,54 @@ h1, .instructions, .score-box, .question-box, #message, #restart-btn, .continent
 <div class="question-box" id="question-box"></div>
 
 <div class="map-container">
-  <img id="map" src="assets/map.png" alt="Kaart">
+  <img id="map" src="images/map.png" alt="Kaart">
 </div>
 
 <div id="message"></div>
 <button id="restart-btn">Opnieuw beginnen</button>
+<div style="margin-top: 10px; background: rgba(0,0,0,0.1); padding: 10px; border-radius: 5px;">
+  <label for="coords-mode">Toon coördinaten bij klik:</label>
+  <input type="checkbox" id="coords-mode">
+  <span id="coords-display" style="margin-left: 15px; font-weight: bold;"></span>
+</div>
 
 <script>
 const questionsByContinent = {
   "Europa": [
-    { question: "Klik op Europa: Plaats de rode pin op het continent Europa", correctPosition: {x: 440, y: 215} },
-    { question: "Klik op de Middellandse Zee: Plaats de rode pin op de Middellandse Zee", correctPosition: {x: 480, y: 280} }
+    { question: "Klik op Europa: Plaats de rode pin op het continent Europa", correctArea: { type: 'rect', x: 340, y: 50, width: 135, height: 115 } },
+    { question: "Klik op de Middellandse Zee: Plaats de rode pin op de Middellandse Zee", correctArea: { type: 'rect', x: 380, y: 120, width: 110, height: 25 } }
   ],
   "Afrika": [
-    { question: "Klik op Afrika: Plaats de rode pin op het continent Afrika", correctPosition: {x: 475, y: 350} },
-    { question: "Klik op de Sahara: Plaats de rode pin op de Sahara-woestijn", correctPosition: {x: 480, y: 360} }
+    { question: "Klik op Afrika: Plaats de rode pin op het continent Afrika", correctArea: { type: 'rect', x: 370, y:120, width: 160, height: 180 } },
+    { question: "Klik op de Sahara: Plaats de rode pin op de Sahara-woestijn", correctArea: { type: 'circle', x: 450, y: 200, radius: 45 } }
   ],
   "Azië": [
-    { question: "Klik op Azië: Plaats de rode pin op het continent Azië", correctPosition: {x: 700, y: 250} },
-    { question: "Klik op de Himalaya: Plaats de rode pin op de bergketen Himalaya", correctPosition: {x: 710, y: 290} },
-    { question: "Klik op Mount Everest: Plaats de rode pin op de top van Mount Everest", correctPosition: {x: 720, y: 285} },
-    { question: "Klik op Japan: Plaats de rode pin op Japan", correctPosition: {x: 820, y: 270} }
+    { question: "Klik op Azië: Plaats de rode pin op het continent Azië", correctArea: { type: 'rect', x: 450, y: 45, width: 280, height: 240 } },
+    { question: "Klik op de Himalaya: Plaats de rode pin op de bergketen Himalaya", correctArea: { type: 'circle', x: 570, y: 150, radius: 25 } },
+    { question: "Klik op Mount Everest: Plaats de rode pin op de top van Mount Everest", correctArea: { type: 'circle', x: 645, y: 255, radius: 10 } },
+    { question: "Klik op Japan: Plaats de rode pin op Japan", correctArea: { type: 'circle', x: 800, y: 200, radius: 25 } }
   ],
   "Noord-Amerika": [
-    { question: "Klik op Noord-Amerika: Plaats de rode pin op het continent Noord-Amerika", correctPosition: {x: 200, y: 240} },
-    { question: "Klik op Groenland: Plaats de rode pin op Groenland", correctPosition: {x: 330, y: 120} }
+    { question: "Klik op Noord-Amerika: Plaats de rode pin op het continent Noord-Amerika", correctArea: { type: 'rect', x: 80, y: 80, width: 280, height: 240 } },
+    { question: "Klik op Groenland: Plaats de rode pin op Groenland", correctArea: { type: 'circle', x: 310, y: 70, radius: 55 } }
   ],
   "Zuid-Amerika": [
-    { question: "Klik op Zuid-Amerika: Plaats de rode pin op het continent Zuid-Amerika", correctPosition: {x: 280, y: 470} },
-    { question: "Klik op de Amazone: Plaats de rode pin op de rivier Amazone", correctPosition: {x: 300, y: 430} }
+    { question: "Klik op Zuid-Amerika: Plaats de rode pin op het continent Zuid-Amerika", correctArea: { type: 'rect', x: 230, y: 310, width: 120, height: 200 } },
+    { question: "Klik op de Amazone: Plaats de rode pin op de rivier Amazone", correctArea: { type: 'circle', x: 270, y: 355, radius: 40 } }
   ],
   "Australië": [
-    { question: "Klik op Australië: Plaats de rode pin op het continent Australië", correctPosition: {x: 780, y: 490} }
+    { question: "Klik op Australië: Plaats de rode pin op het continent Australië", correctArea: { type: 'rect', x: 730, y: 380, width: 110, height: 85 } }
   ],
   "Antarctica": [
-    { question: "Klik op Antarctica: Plaats de rode pin op het continent Antarctica", correctPosition: {x: 450, y: 570} },
-    { question: "Klik op de Zuidpool: Plaats de rode pin op de Zuidpool", correctPosition: {x: 450, y: 580} }
+    { question: "Klik op Antarctica: Plaats de rode pin op het continent Antarctica", correctArea: { type: 'rect', x: 200, y: 520, width: 500, height: 40 } },
+    { question: "Klik op de Zuidpool: Plaats de rode pin op de Zuidpool", correctArea: { type: 'circle', x: 450, y: 540, radius: 25 } }
   ],
   "Oceanen": [
-    { question: "Klik op de oceaan links van Afrika: Plaats de rode pin op de Atlantische Oceaan", correctPosition: {x: 350, y: 400} },
-    { question: "Klik op de oceaan rechts van Afrika: Plaats de rode pin op de Indische Oceaan", correctPosition: {x: 650, y: 430} }
+    { question: "Klik op de oceaan links van Afrika: Plaats de rode pin op de Atlantische Oceaan", correctArea: { type: 'circle', x: 340, y: 320, radius: 50 } },
+    { question: "Klik op de oceaan rechts van Afrika: Plaats de rode pin op de Indische Oceaan", correctArea: { type: 'circle', x: 610, y: 390, radius: 60 } }
   ],
   "Poolgebieden": [
-    { question: "Klik op de Noordpool: Plaats de rode pin op de Noordpool", correctPosition: {x: 450, y: 30} }
+    { question: "Klik op de Noordpool: Plaats de rode pin op de Noordpool", correctArea: { type: 'circle', x: 450, y: 20, radius: 35 } }
   ]
 };
 
@@ -212,7 +217,6 @@ let allQuestions = [];
 let currentQ = 0;
 let score = 0;
 let canClick = true;
-const tolerance = 50;
 
 const questionBox = document.getElementById('question-box');
 const continentInfo = document.getElementById('continent-info');
@@ -222,6 +226,8 @@ const message = document.getElementById('message');
 const restartBtn = document.getElementById('restart-btn');
 const scoreDisplay = document.getElementById('score');
 const totalDisplay = document.getElementById('total');
+const coordsModeCheckbox = document.getElementById('coords-mode');
+const coordsDisplay = document.getElementById('coords-display');
 
 function initGame() {
   allQuestions = [];
@@ -257,6 +263,14 @@ function showConfetti() {
 }
 
 mapContainer.addEventListener('click', e => {
+  const rectForCoords = map.getBoundingClientRect();
+  const xForCoords = e.clientX - rectForCoords.left;
+  const yForCoords = e.clientY - rectForCoords.top;
+
+  if (coordsModeCheckbox.checked) {
+    const coordsText = `x: ${Math.round(xForCoords)}, y: ${Math.round(yForCoords)}`;
+    coordsDisplay.textContent = coordsText;
+  }
   if(currentQ >= allQuestions.length || !canClick) return;
 
   canClick = false;
@@ -271,16 +285,28 @@ mapContainer.addEventListener('click', e => {
   userPin.style.top = y + 'px';
   mapContainer.appendChild(userPin);
 
-  const correct = allQuestions[currentQ].correctPosition;
-  const dx = x - correct.x;
-  const dy = y - correct.y;
-  const isCorrect = Math.sqrt(dx*dx + dy*dy) <= tolerance;
+  const area = allQuestions[currentQ].correctArea;
+  let isCorrect = false;
+  let correctPinX, correctPinY;
+
+  if (area.type === 'circle') {
+    const dx = x - area.x;
+    const dy = y - area.y;
+    isCorrect = Math.sqrt(dx*dx + dy*dy) <= area.radius;
+    correctPinX = area.x;
+    correctPinY = area.y;
+  } else if (area.type === 'rect') {
+    isCorrect = (x >= area.x && x <= area.x + area.width &&
+                 y >= area.y && y <= area.y + area.height);
+    correctPinX = area.x + area.width / 2;
+    correctPinY = area.y + area.height / 2;
+  }
 
   setTimeout(() => {
     const correctPin = document.createElement('div');
     correctPin.classList.add('pin', 'correct-pin');
-    correctPin.style.left = correct.x + 'px';
-    correctPin.style.top = correct.y + 'px';
+    correctPin.style.left = correctPinX + 'px';
+    correctPin.style.top = correctPinY + 'px';
     mapContainer.appendChild(correctPin);
 
     if(isCorrect){
