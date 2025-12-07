@@ -1,0 +1,752 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Trivia Turbo</title>
+  <style>
+
+  body {
+  margin: 0;
+  font-family: 'Arial', sans-serif;
+  background: radial-gradient(circle at center, #e0cd8f, #b38941 80%);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+ }
+
+/* Auto selectie - bovenaan scherm */
+.car-selection-header {
+  position: absolute;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 100;
+  text-align: center;
+}
+
+.car-selection-header h3 {
+  color: #ffffff;
+  margin-bottom: 10px;
+  font-size: 1.2em;
+  text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+}
+
+.car-selection {
+  display: flex;
+  gap: 15px;
+  justify-content: center;
+}
+
+.car-option {
+  cursor: pointer;
+  border: 3px solid transparent;
+  border-radius: 10px;
+  padding: 8px;
+  transition: all 0.3s ease;
+  background-color: rgba(255, 255, 255, 0.327);
+}
+
+.car-option:hover {
+  background-color: rgba(255, 255, 255, 0.327);
+  transform: scale(1.1);
+}
+
+.car-option.selected {
+  border-color: #f77f00;
+  background-color: rgba(247, 127, 0, 0.4);
+  box-shadow: 0 0 15px rgba(247, 127, 0, 0.7);
+}
+
+.car-option img {
+  width: 80px;
+  height: auto;
+  display: block;
+}
+
+
+#niveau-select {
+  text-align: center;
+  margin-bottom: 30px;
+  margin-top: 80px;
+}
+
+
+#niveau-select select {
+  padding: 5px 7px;
+  font-size: 1rem;
+  border-radius: 15px;
+  background-color: #ffffff;
+  color: rgb(0, 0, 0);
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+
+#start-btn {
+  position: absolute;
+  top: 40%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  padding: 12px 24px;
+  font-size: 20px;
+  border: none;
+  border-radius: 8px;
+  background-color: #ffffff;
+  color: rgb(0, 0, 0);
+  cursor: pointer;
+  z-index: 10;
+}
+
+#start-btn:hover {
+  background-color: #ffe5b1;
+}
+.game-container {
+  text-align: center;
+  width: 800px;
+}
+
+
+
+
+
+.timer-display {
+  position: relative;
+  bottom: -100%;
+  color: #ffffff;
+  font-size: 20px;
+  font-weight: bold;
+  margin-bottom: 10px;
+}
+
+
+.track {
+  position: relative;
+  width: 800px;
+  height: 100px;
+  margin-bottom: 40px;
+}
+
+.road {
+  width: 100%;
+  height: 55px;
+  background-color: #333;
+  border-radius: 30px;
+  position: absolute;
+  top: 20px;
+  overflow: hidden;
+}
+
+.lane-stripes {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  height: 100%;
+  padding: 0 20px;
+}
+
+.stripe {
+  width: 20px;
+  height: 8px;
+  background-color: white;
+  border-radius: 4px;
+}
+
+.flag {
+  position: absolute;
+  top: -50px;
+  left: 680px;
+  width: 70px;
+  height: auto;
+  transition: left 0.8s ease;
+
+}
+.car {
+  position: absolute;
+  top: -5px;
+  left: 20px;
+  width: 150px;
+  height: auto;
+  transition: left 0.8s ease;
+}
+
+#reset-btn {
+  position: absolute; 
+  top: -70px;            /* afstand vanaf de bovenkant */
+  right: 10px; 
+  width: 50px;
+  height: 50px; 
+  cursor: pointer;    
+}
+
+
+
+.question-box {
+  position: relative;
+  background-color: #fff;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 0 10px rgba(0,0,0,0.2);
+  color: #fff;              /* witte tekst */
+  font-size: 1.2em;         /* iets grotere tekst */
+}
+
+.overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 20;
+  
+}
+
+.overlay.hidden {
+  display: none;
+}
+
+.overlay.start {
+  backdrop-filter: blur(3px);
+}
+
+.overlay.error {
+  background-color: rgba(255, 71, 71, 0.696);
+  color: white;
+  font-size: 24px;
+  font-weight: bold;
+}
+
+.overlay.correct {
+  background-color: rgba(71, 255, 92, 0.696);
+  color: white;
+  font-size: 24px;
+  font-weight: bold;
+}
+
+.overlay h3 {
+  margin-top: 0;
+}
+
+
+
+
+.wetenschap {
+  background-image: url("wetenschap.png");
+  background-size: cover;
+  background-position: center;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 0 10px rgba(0,0,0,0.2);
+  color: #fff;
+  font-size: 1.2em;
+}
+
+.geschiedenis {
+  background-image: url("geschiedenis.png");
+  background-size: cover;
+  background-position: center;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 0 10px rgba(0,0,0,0.2);
+  color: #fff;
+  font-size: 1.2em;
+
+}
+.leaderboard {
+  position: absolute;
+  top: 3px;
+  left: 15px;
+  color: #ffffff;
+  font-size: 20px;
+  font-weight: bold;
+  margin-bottom: 10px;
+}
+
+.sport {
+  background-image: url("sport.png");
+  background-size: cover;
+  background-position: center;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 0 10px rgba(0,0,0,0.2);
+  color: #fff;
+  font-size: 1.2em;
+}
+
+
+.answers button {
+  margin: 10px;
+  padding: 10px 20px;
+  font-size: 18px;
+  border: none;
+  border-radius: 5px;
+  background-color: #f77f00;
+  color: white;
+  cursor: pointer;
+}
+
+.answers button:hover {
+  background-color: #d62828;
+}
+
+.streak-box {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 20px;
+}
+
+.streak-icon {
+  width: 30px;
+  height: auto;
+  margin-right: 10px;
+}
+
+#streak-count {
+  font-size: 24px;
+  font-weight: bold;
+  color: #d65c28;
+}
+
+
+  </style>
+</head>
+<body>
+  <!-- Auto selectie bovenaan -->
+  <div class="car-selection-header">
+    <div class="car-selection">
+      <div class="car-option selected" data-car="car.png">
+        <img src="assets/car.png" alt="Rode Auto" />
+      </div>
+      <div class="car-option" data-car="car2.png">
+        <img src="assets/car2.png" alt="Blauwe Auto" />
+      </div>
+      <div class="car-option" data-car="car3.png">
+        <img src="assets/car3.png" alt="Groene Auto" />
+      </div>
+    </div>
+  </div>
+
+  <div class="game-container">
+    <div class="track">
+      <div class="road">
+        <div class="lane-stripes">
+          <!-- Je stripes -->
+          <div class="stripe"></div>
+          <div class="stripe"></div>
+          <div class="stripe"></div>
+          <div class="stripe"></div>
+          <div class="stripe"></div>
+          <div class="stripe"></div>
+          <div class="stripe"></div>
+          <div class="stripe"></div>
+          <div class="stripe"></div>
+          <div class="stripe"></div>
+          <div class="stripe"></div>
+          <div class="stripe"></div>
+          <div class="stripe"></div>
+          <div class="stripe"></div>
+          <div class="stripe"></div>
+          <div class="stripe"></div>
+          <div class="stripe"></div>
+          <div class="stripe"></div>
+          <div class="stripe"></div>
+        </div>
+      </div>
+      <img src="assets/car.png" alt="Red Car" class="car" id="car" />
+      <img src="assets/flag.png" alt="flag" class="flag" id="flag" />
+      <div id="timer" class="timer-display">⏱️ Tijd: 0.00s</div>
+    </div>
+
+    <!-- Streak display -->
+    <div class="streak-box">
+      <img src="assets/streak.png" alt="Streak Icon" class="streak-icon" />
+      <span id="streak-count">0</span>
+    </div>
+
+    <!-- Vraag + antwoorden -->
+    <div class="question-box" id="question-box">
+      
+      <!-- Overlay voor start -->
+      <div id="overlay-start" class="overlay start">
+        <div id="niveau-select">
+          <select id="niveau">
+            <option value="1">Niveau 1</option>
+            <option value="2">Niveau 2</option>
+            <option value="3">Niveau 3</option>
+          </select>
+        </div>
+        <button id="start-btn">Start</button>
+      </div>
+
+      <!-- Overlay voor fouten -->
+      <div id="overlay-error" class="overlay error hidden">
+        <span>Helaas!</span>
+      </div>
+
+      <div id="overlay-correct" class="overlay correct hidden">
+        <span>correct!</span>
+      </div>
+
+      <img id="reset-btn" src="assets/reset.png" alt="Reset" class="reset-icon">
+      <div id="question">Vraag komt hier...</div>
+      <div class="answers">
+        <button></button>
+        <button></button>
+        <button></button>
+      </div>
+    </div>
+
+    <!-- Leaderboard -->
+    <div class="leaderboard">
+      <h2>🏆 Highscores</h2>
+      <ol id="highscore-list">
+        <!-- Dynamisch gevuld via script.js -->
+      </ol>
+    </div>
+  </div>
+
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
+  import { getFirestore } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+
+  async function loadFirebaseConfig() {
+    const response = await fetch('firebaseConfig.json'); 
+    if (!response.ok) {
+      throw new Error("Kon firebaseConfig.json niet laden");
+    }
+    return await response.json();
+  }
+
+  loadFirebaseConfig().then(firebaseConfig => {
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    window.db = db;
+  }).catch(error => {
+    console.error("Fout bij laden Firebase config:", error);
+  });
+
+  
+// Firebase imports
+import { collection, addDoc, getDocs, query, orderBy, limit } 
+  from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+
+// 🎵 Audio Context en muziek setup - RITME
+const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+let oscillator = null;
+let gainNode = null;
+let isPlaying = false;
+let beatInterval = null;
+let currentBPM = 60; // Start bij 60 BPM
+
+function playBeat() {
+  const beep = audioContext.createOscillator();
+  const beepGain = audioContext.createGain();
+  
+  beep.connect(beepGain);
+  beepGain.connect(audioContext.destination);
+  
+  beep.frequency.setValueAtTime(880, audioContext.currentTime);
+  beepGain.gain.setValueAtTime(0.15, audioContext.currentTime);
+  beepGain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.1);
+  
+  beep.start(audioContext.currentTime);
+  beep.stop(audioContext.currentTime + 0.1);
+}
+
+function startMusic() {
+  if (isPlaying) return;
+  isPlaying = true;
+  currentBPM = 60;
+  updateBeatInterval();
+}
+
+function updateBeatInterval() {
+  if (beatInterval) {
+    clearInterval(beatInterval);
+  }
+  
+  const intervalMs = (60 / currentBPM) * 1000;
+  beatInterval = setInterval(playBeat, intervalMs);
+}
+
+function stopMusic() {
+  if (beatInterval) {
+    clearInterval(beatInterval);
+    beatInterval = null;
+    isPlaying = false;
+  }
+}
+
+function updateMusicTempo() {
+  if (!isPlaying) return;
+  
+  const progress = carPosition / winDistance;
+  const minBPM = 60;
+  const maxBPM = 250;
+  currentBPM = minBPM + (progress * (maxBPM - minBPM));
+  
+  updateBeatInterval();
+}
+
+let selectedCar = "car.png";
+let timerStarted = false;
+let startTime = null;
+let timerInterval = null;
+
+// Auto selectie functionaliteit
+document.addEventListener('DOMContentLoaded', function() {
+  document.querySelectorAll('.car-option').forEach(option => {
+    option.addEventListener('click', function() {
+      document.querySelectorAll('.car-option').forEach(opt => {
+        opt.classList.remove('selected');
+      });
+      this.classList.add('selected');
+      selectedCar = this.dataset.car;
+    });
+  });
+});
+
+function startTimer() {
+  startTime = Date.now();
+  timerStarted = true;
+  timerInterval = setInterval(updateTimerDisplay, 10);
+  startMusic();
+}
+
+async function stopTimer() {
+  clearInterval(timerInterval);
+  stopMusic();
+  const totalSeconds = (Date.now() - startTime) / 1000;
+  document.getElementById("timer").textContent = 
+    `⏱️ Tijd: ${totalSeconds.toFixed(2)}s`;
+
+  try {
+    await addDoc(collection(window.db, "gameTimes"), {
+      time: totalSeconds.toFixed(2),
+      streak: streak,
+      niveau: currentNiveau,
+      date: new Date().toISOString()
+    });
+    console.log("Tijd opgeslagen in Firestore!");
+    loadHighscores();
+  } catch (err) {
+    console.error("Kon tijd niet opslaan:", err);
+  }
+}
+
+function updateTimerDisplay() {
+  const elapsed = (Date.now() - startTime) / 1000;
+  document.getElementById("timer").textContent = 
+    `⏱️ Tijd: ${elapsed.toFixed(2)}s`;
+}
+
+function resetGame() {
+  carPosition = 20;
+  const carImg = document.getElementById("car");
+  carImg.style.left = carPosition + "px";
+  carImg.src = "assets/" + selectedCar;
+
+  streak = 0;
+  document.getElementById("streak-count").textContent = streak;
+
+  clearInterval(timerInterval);
+  stopMusic();
+  timerStarted = false;
+  startTime = null;
+  document.getElementById("timer").textContent = "⏱️ Tijd: 0.00s";
+
+  // overlay en niveau-select weer zichtbaar maken
+  document.getElementById("overlay-start").classList.remove("hidden");
+
+  // niveau opnieuw ophalen uit dropdown
+  currentNiveau = parseInt(document.getElementById("niveau").value, 10);
+
+  loadQuestion();
+}
+
+document.getElementById("reset-btn").onclick = resetGame;
+
+// 👉 Startknop event
+document.getElementById("start-btn").onclick = () => {
+  // Auto instellen
+  document.getElementById("car").src = "assets/" + selectedCar;
+  
+  // overlay verbergen
+  document.getElementById("overlay-start").classList.add("hidden");
+
+  if (!timerStarted) {
+    currentNiveau = parseInt(document.getElementById("niveau").value, 10);
+    startTimer();
+  }
+};
+
+let carPosition = 20;
+let streak = 0;
+let currentNiveau = 1;
+const winDistance = 600;
+
+let allQuestions = [];
+let questionPools = { 1: [], 2: [], 3: [] };
+
+const categories = ["wetenschap.json", "geschiedenis.json", "sport.json"];
+
+function shuffle(array) {
+  for (let i = array.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [array[i], array[j]] = [array[j], array[i]];
+  }
+  return array;
+}
+
+function loadAllQuestions() {
+  const promises = categories.map(cat =>
+    fetch("./" + cat).then(res => res.json())
+  );
+
+  Promise.all(promises)
+    .then(results => {
+      allQuestions = results.flat();
+
+      questionPools[1] = shuffle(allQuestions.filter(q => q.niveau === 1));
+      questionPools[2] = shuffle(allQuestions.filter(q => q.niveau === 2));
+      questionPools[3] = shuffle(allQuestions.filter(q => q.niveau === 3));
+
+      loadQuestion();
+    })
+    .catch(err => {
+      console.error("Kon vragen niet laden:", err);
+      document.getElementById("question").textContent = "Fout bij laden van vragen!";
+    });
+}
+
+function loadQuestion() {
+  if (questionPools[currentNiveau].length === 0) {
+    // Als pool leeg is, opnieuw vullen
+    questionPools[currentNiveau] = shuffle(allQuestions.filter(q => q.niveau === currentNiveau));
+  }
+
+  const q = questionPools[currentNiveau].pop();
+  const questionBox = document.getElementById("question");
+  questionBox.textContent = q.question;
+  questionBox.className = q.category || "";
+
+  const buttons = document.querySelectorAll(".answers button");
+
+  let opts = Array.isArray(q.options) ? [...q.options] : [];
+  const correct = q.correct;
+
+  if (!opts.includes(correct)) {
+    opts.push(correct);
+  }
+  opts = [...new Set(opts)];
+  let shuffled = shuffle(opts);
+
+  const count = Math.min(buttons.length, shuffled.length);
+  shuffled = shuffled.slice(0, count);
+
+  if (!shuffled.includes(correct)) {
+    shuffled[count - 1] = correct;
+    shuffled = shuffle(shuffled);
+  }
+
+  buttons.forEach((btn, i) => {
+    if (i < count) {
+      const value = shuffled[i];
+      btn.textContent = value;
+      btn.dataset.isCorrect = String(value === correct);
+      btn.disabled = false;
+      btn.style.display = "";
+      btn.onclick = () => checkAnswer(btn, q);
+    } else {
+      btn.textContent = "";
+      btn.dataset.isCorrect = "false";
+      btn.disabled = true;
+      btn.style.display = "none";
+      btn.onclick = null;
+    }
+  });
+}
+
+function checkAnswer(button, q) {
+  const isCorrect = button.dataset.isCorrect === "true";
+
+  if (isCorrect) {
+    streak++;
+    document.getElementById("streak-count").textContent = streak;
+
+    let step = 10;
+    if (streak >= 2) step = 30;
+    if (streak >= 3) step = 50;
+    if (streak >= 5) step = 90;
+    if (streak >= 7) step = 120;
+
+    carPosition += step;
+    document.getElementById("car").style.left = carPosition + "px";
+
+    const correctOverlay = document.getElementById("overlay-correct");
+    correctOverlay.classList.remove("hidden");
+
+    setTimeout(() => {
+      correctOverlay.classList.add("hidden");
+      loadQuestion();
+      
+    }, 1000);
+    // Update muziek tempo
+    updateMusicTempo();
+
+    if (carPosition >= winDistance) {
+      stopTimer();
+      setTimeout(() => {
+        alert("🏁 Gefeliciteerd! Je hebt de finish gehaald!");
+      }, 500);
+      return;
+    }
+
+    setTimeout(loadQuestion, 1000);
+  } else {
+    streak = 0;
+    document.getElementById("streak-count").textContent = streak;
+
+    // ❌ Error overlay tonen
+    const errorOverlay = document.getElementById("overlay-error");
+    errorOverlay.classList.remove("hidden");
+
+    setTimeout(() => {
+      errorOverlay.classList.add("hidden");
+      loadQuestion();
+    }, 1000);
+  }
+}
+
+async function loadHighscores() {
+  const q = query(collection(window.db, "gameTimes"), orderBy("time", "asc"), limit(10));
+  const snapshot = await getDocs(q);
+  const list = document.getElementById("highscore-list");
+  list.innerHTML = "";
+  snapshot.forEach(doc => {
+    const data = doc.data();
+    const li = document.createElement("li");
+    li.textContent = `${data.time}s (niveau: ${data.niveau})`;
+    list.appendChild(li);
+  });
+}
+
+// Start automatisch
+window.onload = () => {
+  loadAllQuestions();
+  loadHighscores();
+};
+
+</script>
+
+</body>
+</html>
