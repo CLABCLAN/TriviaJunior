@@ -4,7 +4,131 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Magische Spel Game! 🧙‍♂️</title>
-    <link rel="stylesheet" href="stijl.css"> 
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap');
+
+body {
+    font-family: 'Poppins', sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    margin: 0;
+    background: radial-gradient(circle at center, #b26fc5, #552364 80%);
+    color: #e0e0e0;
+}
+
+#game-container {
+    background-color: #1e1e1e;
+    padding: 30px;
+    border-radius: 15px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+    text-align: center;
+    width: 90%;
+    max-width: 500px;
+    border: 1px solid #333;
+}
+
+h1 {
+    color: #bb86fc;
+    margin-bottom: 20px;
+}
+
+h2 {
+    color: #ffffff;
+    margin-bottom: 15px;
+    font-size: 1.2em;
+}
+
+#mode-selector {
+    margin-bottom: 25px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    justify-content: center;
+}
+
+.mode-button {
+    background-color: #333;
+    color: #e0e0e0;
+    border: 2px solid #444;
+    padding: 10px 15px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.3s, border-color 0.3s;
+    font-size: 0.9em;
+}
+
+.mode-button:hover {
+    background-color: #444;
+    border-color: #bb86fc;
+}
+
+.mode-button.active {
+    background-color: #bb86fc;
+    color: #121212;
+    border-color: #bb86fc;
+    font-weight: 600;
+}
+
+.info-bar {
+    display: flex;
+    justify-content: space-around;
+    margin-bottom: 20px;
+    color: #cfcfcf;
+}
+
+.word-display {
+    font-size: 2em;
+    letter-spacing: 5px;
+    margin: 20px 0;
+    padding: 15px;
+    background-color: #2a2a2a;
+    border-radius: 8px;
+    color: #ffffff;
+    font-weight: 600;
+}
+
+.input-area {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+#user-input {
+    flex-grow: 1;
+    padding: 12px;
+    border: 2px solid #444;
+    border-radius: 8px;
+    background-color: #2a2a2a;
+    color: #e0e0e0;
+    font-size: 1em;
+}
+
+#user-input:focus {
+    outline: none;
+    border-color: #bb86fc;
+}
+
+#check-button, #next-button {
+    padding: 12px 20px;
+    border: none;
+    border-radius: 8px;
+    background-color: #ffffff;
+    color: #121212;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+#check-button:hover, #next-button:hover {
+    background-color: #018786;
+}
+
+.hidden {
+    display: none;
+}
+    </style>
 </head>
 <body>
 
@@ -35,6 +159,210 @@
         <button id="next-button" class="hidden">Nieuw Woord / Herstart</button>
     </div>
 
-    <script src="game.js"></script> 
+    <script>
+      document.addEventListener('DOMContentLoaded', () => {
+    // DOM-elementen ophalen
+    const modeButtons = document.querySelectorAll('.mode-button');
+    const wordDisplay = document.getElementById('scrambled-word-display');
+    const userInput = document.getElementById('user-input');
+    const checkButton = document.getElementById('check-button');
+    const feedbackMessage = document.getElementById('feedback-message');
+    const scoreSpan = document.getElementById('current-score');
+    const nextButton = document.getElementById('next-button');
+    const timerDisplay = document.getElementById('timer-display');
+    const currentTimeSpan = document.getElementById('current-time');
+    const levelDisplay = document.getElementById('level-display');
+
+    // Spelstatus variabelen
+    let currentMode = 'default';
+    let score = 0;
+    let timerInterval;
+    let timeLeft;
+    let availableWords = [];
+
+    // Dummy data voor het woordspel
+    const words = [ // Lijst met 30 makkelijkere woorden
+        { original: "huis", scrambled: "siuh" },
+        { original: "boom", scrambled: "moob" },
+        { original: "auto", scrambled: "otua" },
+        { original: "zon", scrambled: "noz" },
+        { original: "maan", scrambled: "naam" },
+        { original: "kat", scrambled: "tak" },
+        { original: "hond", scrambled: "dnoh" },
+        { original: "vis", scrambled: "siv" },
+        { original: "bal", scrambled: "lab" },
+        { original: "stoel", scrambled: "leots" },
+        { original: "tafel", scrambled: "lefat" },
+        { original: "bed", scrambled: "deb" },
+        { original: "boek", scrambled: "koeb" },
+        { original: "pen", scrambled: "nep" },
+        { original: "jas", scrambled: "saj" },
+        { original: "sok", scrambled: "kos" },
+        { original: "melk", scrambled: "klem" },
+        { original: "brood", scrambled: "doorb" },
+        { original: "kaas", scrambled: "saak" },
+        { original: "gras", scrambled: "sarg" },
+        { original: "bloem", scrambled: "moelb" },
+        { original: "water", scrambled: "retwa" },
+        { original: "fiets", scrambled: "stefi" },
+        { original: "boot", scrambled: "toob" },
+        { original: "zee", scrambled: "eez" },
+        { original: "park", scrambled: "krap" },
+        { original: "vogel", scrambled: "legov" },
+        { original: "appel", scrambled: "leppa" },
+        { original: "peer", scrambled: "reep" },
+        { original: "eten", scrambled: "nete" }
+    ];
+    let currentWord = null;
+    let isAnswered = false; // Voorkomt dubbele 'Enter' acties
+
+    modeButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            modeButtons.forEach(btn => btn.classList.remove('active'));
+            button.classList.add('active');
+            currentMode = button.dataset.mode;
+            console.log("Modus veranderd naar:", currentMode);
+            resetGame();
+        });
+    });
+
+    // --- TIMER LOGICA ---
+    function startTimer() {
+        timeLeft = 45; // Starttijd
+        currentTimeSpan.textContent = timeLeft;
+        timerDisplay.classList.remove('hidden');
+
+        timerInterval = setInterval(() => {
+            timeLeft--;
+            currentTimeSpan.textContent = timeLeft;
+
+            if (timeLeft <= 0) {
+                clearInterval(timerInterval);
+                endGame();
+            }
+        }, 1000);
+    }
+
+    function stopTimer() {
+        clearInterval(timerInterval);
+    }
+
+    function adjustTime(seconds) {
+        timeLeft += seconds;
+        if (timeLeft < 0) timeLeft = 0; // Zorg ervoor dat de tijd niet negatief wordt
+        currentTimeSpan.textContent = timeLeft;
+    }
+
+    function endGame() {
+        stopTimer();
+        wordDisplay.textContent = `Tijd is om! Je eindscore is ${score}.`;
+        feedbackMessage.textContent = 'Klik op "Herstart" om opnieuw te spelen.';
+        userInput.disabled = true;
+        checkButton.disabled = true;
+        nextButton.textContent = 'Herstart';
+        nextButton.style.display = 'inline-block';
+        nextButton.classList.remove('hidden');
+    }
+
+    function resetGame() {
+        score = 0;
+        scoreSpan.textContent = score;
+        feedbackMessage.textContent = '';
+        userInput.value = '';
+        userInput.disabled = false;
+        userInput.style.display = 'inline-block';
+        checkButton.disabled = false;
+        checkButton.style.display = 'inline-block';
+        nextButton.classList.add('hidden');
+        availableWords = [...words]; // Reset de lijst met beschikbare woorden
+        stopTimer();
+
+        // UI aanpassen op basis van modus
+        timerDisplay.classList.add('hidden');
+        levelDisplay.classList.add('hidden');
+
+        if (currentMode === 'time') {
+            startTimer();
+        }
+
+        document.querySelector('h1').textContent = '✨ Spellingskampioen! ✨';
+        userInput.placeholder = 'Typ het juiste woord hier...';
+        nextButton.textContent = 'Nieuw Woord / Herstart';
+
+        getNewWord();
+    }
+
+    function getNewWord() {
+        isAnswered = false; // Reset de status voor het nieuwe woord
+        if (availableWords.length === 0) {
+            stopTimer();
+            wordDisplay.textContent = "Alle woorden geraden!";
+            feedbackMessage.textContent = `Goed gedaan! Je eindscore is ${score}.`;
+            userInput.disabled = true;
+            checkButton.disabled = true;
+            nextButton.textContent = 'Herstart';
+            nextButton.classList.remove('hidden');
+            return;
+        }
+        const randomIndex = Math.floor(Math.random() * availableWords.length);
+        currentWord = availableWords[randomIndex];
+        wordDisplay.textContent = currentWord.scrambled;
+        feedbackMessage.textContent = '';
+        userInput.value = '';
+        userInput.disabled = false;
+        checkButton.disabled = false;
+        nextButton.classList.add('hidden');
+    }
+
+    function checkAnswer() {
+        if (isAnswered) return; // Als al beantwoord, doe niets
+
+        const playerAnswer = userInput.value.toLowerCase();
+        if (playerAnswer === currentWord.original.toLowerCase()) {
+            isAnswered = true;
+            score++;
+            scoreSpan.textContent = score;
+            feedbackMessage.textContent = '🎉 Goed zo!';
+            feedbackMessage.style.color = 'green';
+
+            // Verwijder het correct geraden woord uit de lijst
+            const wordIndex = availableWords.indexOf(currentWord);
+            if (wordIndex > -1) {
+                availableWords.splice(wordIndex, 1);
+            }
+
+            if (currentMode === 'time') {
+                adjustTime(30); // +30 seconden voor goed antwoord
+            }
+
+            // Ga direct door naar het volgende woord na een korte pauze
+            setTimeout(getNewWord, 400);
+        } else {
+            feedbackMessage.textContent = `Helaas, probeer het opnieuw.`;
+            feedbackMessage.style.color = 'red';
+            if (currentMode === 'time') {
+                adjustTime(-10); // -10 seconden voor fout antwoord
+            }
+        }
+    }
+
+    checkButton.addEventListener('click', checkAnswer);
+    userInput.addEventListener('keyup', (event) => {
+        if (event.key === 'Enter' && !userInput.disabled) {
+            checkAnswer();
+        }
+    });
+
+    nextButton.addEventListener('click', () => {
+        if (nextButton.textContent === 'Herstart') {
+            resetGame();
+        } else {
+            getNewWord();
+        }
+    });
+
+    resetGame();
+});
+    </script> 
 </body>
 </html>
