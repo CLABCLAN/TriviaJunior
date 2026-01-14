@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Parfum Assistent - Stel je vraag</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🌸 Parfum Assistent</h1>
+            <p>Stel een vraag over parfums en krijg direct antwoord</p>
+            <button id="cartButton" class="cart-button" onclick="toggleCart()">
+                🛒 Winkelmandje (<span id="cartCount">0</span>)
+            </button>
+        </header>
+
+        <!-- Shopping Cart -->
+        <div id="cartModal" class="cart-modal hidden">
+            <div class="cart-content">
+                <h2>🛒 Jouw Winkelmandje</h2>
+                <div id="cartItems"></div>
+                <div class="cart-total">
+                    <strong>Totaal:</strong> €<span id="cartTotal">0.00</span>
+                </div>
+                <div class="cart-actions">
+                    <button onclick="clearCart()" class="clear-btn">Leeg mandje</button>
+                    <button onclick="toggleCart()" class="close-btn">Sluiten</button>
+                </div>
+            </div>
+        </div>
+
+        <main>
+            <!-- Chat Interface -->
+            <div class="chat-container">
+                <div id="chatMessages" class="chat-messages">
+                    <div class="message bot-message">
+                        <div class="message-content">
+                            Hallo! Ik ben je parfum assistent. Stel me een vraag over parfums uit onze collectie!
+                        </div>
+                    </div>
+                </div>
+
+                <div class="input-container">
+                    <input 
+                        type="text" 
+                        id="questionInput" 
+                        placeholder="bijv. Welk parfum past bij een zomerse dag?"
+                        autocomplete="off"
+                    >
+                    <button id="askButton">
+                        <span id="buttonText">Vraag</span>
+                        <span id="buttonLoader" class="loader hidden"></span>
+                    </button>
+                </div>
+
+                <div class="suggestions">
+                    <p>Voorbeeld vragen:</p>
+                    <button class="suggestion-btn" data-question="Welke parfums heb je?">
+                        Welke parfums heb je?
+                    </button>
+                    <button class="suggestion-btn" data-question="Wat is het duurste parfum?">
+                        Wat is het duurste parfum?
+                    </button>
+                    <button class="suggestion-btn" data-question="Welk parfum is bloemig?">
+                        Welk parfum is bloemig?
+                    </button>
+                </div>
+            </div>
+
+            <!-- Parfum Database -->
+            <div class="database-section">
+                <h2>Parfum Database</h2>
+                <div class="search-box">
+                    <input 
+                        type="text" 
+                        id="searchInput" 
+                        placeholder="Zoek in database..."
+                    >
+                    <button id="searchButton">Zoek</button>
+                </div>
+                <div id="parfumsContainer" class="parfums-grid">
+                    <p class="loading">Database laden...</p>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
