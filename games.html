@@ -26,7 +26,6 @@
 
     const loginSection = document.getElementById("login-section");
     const adminSection = document.getElementById("admin-section");
-    const loginForm = document.getElementById("login-form");
     const logoutBtn = document.getElementById("logout-btn");
     const perfumeForm = document.getElementById("perfume-form");
     const perfumeList = document.getElementById("perfume-list");
@@ -34,6 +33,51 @@
     const statusBox = document.getElementById("status");
 
     let editId = null;
+
+    // RFID buffer systeem - vangt alle input op
+    let rfidBuffer = "";
+    let rfidTimeout = null;
+
+    // Luister naar ALLE toetsaanslagen op de pagina
+    document.addEventListener("keypress", (e) => {
+      // Voorkom dat dit interfereert met admin formulieren
+      if (adminSection.style.display === "block") return;
+      
+      // Voeg karakter toe aan buffer
+      if (e.key === "Enter") {
+        // RFID scanner stuurt Enter aan het einde
+        processRFIDScan(rfidBuffer.trim());
+        rfidBuffer = "";
+        clearTimeout(rfidTimeout);
+      } else {
+        rfidBuffer += e.key;
+        
+        // Reset buffer na 500ms inactiviteit
+        clearTimeout(rfidTimeout);
+        rfidTimeout = setTimeout(() => {
+          rfidBuffer = "";
+        }, 500);
+      }
+    });
+
+    async function processRFIDScan(scannedData) {
+      // Hier kun je de gescande data verwerken
+      // Bijvoorbeeld: als de scan een specifiek formaat heeft
+      // Voor nu: automatisch inloggen met de credentials
+      try {
+        await signInWithEmailAndPassword(auth, "admin123@gmail.com", scannedData);
+      } catch (err) { 
+        console.log("RFID scan mislukt");
+        // Toon visuele feedback
+        const instruction = document.querySelector(".rfid-instruction");
+        if (instruction) {
+          instruction.style.borderColor = "var(--danger)";
+          setTimeout(() => {
+            instruction.style.borderColor = "var(--accent)";
+          }, 1000);
+        }
+      }
+    }
 
     onAuthStateChanged(auth, async (user) => {
       if (user) {
@@ -51,16 +95,6 @@
         statusBox.innerHTML = "";
         loginSection.style.display = "block";
         adminSection.style.display = "none";
-      }
-    });
-
-    loginForm.addEventListener("submit", async (e) => {
-      e.preventDefault();
-      try {
-        await signInWithEmailAndPassword(auth, loginForm["email"].value, loginForm["password"].value);
-        loginForm.reset();
-      } catch (err) { 
-        alert("Toegang geweigerd - Scan je RFID kaart"); 
       }
     });
 
@@ -239,7 +273,7 @@
     .btn-danger-sm:hover { background: var(--danger); color: white; }
     .btn-edit { background: var(--accent); color: #000; padding: 5px 12px; font-size: 0.8rem; }
 
-    /* RFID instructie styling - VERGROOT */
+    /* RFID instructie styling */
     .rfid-instruction {
       text-align: center;
       margin: 40px 0;
@@ -247,6 +281,7 @@
       background: rgba(56, 189, 248, 0.1);
       border: 3px dashed var(--accent);
       border-radius: 16px;
+      transition: border-color 0.3s;
     }
 
     .rfid-instruction svg {
@@ -281,16 +316,6 @@
       font-size: 0.95rem;
       opacity: 0.6;
       margin-top: 20px;
-    }
-
-    /* VERBERG de input velden volledig */
-    #login-form {
-      position: absolute;
-      left: -9999px;
-      width: 1px;
-      height: 1px;
-      opacity: 0;
-      pointer-events: none;
     }
 
     /* Orders styling */
@@ -397,26 +422,6 @@
           <p>Houd de kaart dicht bij de reader</p>
           <p class="subtitle">Alleen geautoriseerde kaarten hebben toegang</p>
         </div>
-
-        <!-- VERBORGEN FORM voor RFID input -->
-        <form id="login-form">
-          <input 
-            type="email" 
-            name="email" 
-            tabindex="-1"
-            autocomplete="off"
-            autocorrect="off"
-            autocapitalize="off"
-            spellcheck="false"
-          />
-          <input 
-            type="password" 
-            name="password" 
-            tabindex="-1"
-            autocomplete="new-password"
-          />
-          <button type="submit" tabindex="-1">Login</button>
-        </form>
       </div>
     </section>
 
