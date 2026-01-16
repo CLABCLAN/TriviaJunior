@@ -2,295 +2,370 @@
 <html lang="nl">
 <head>
   <meta charset="UTF-8" />
+  <title>Perfume Admin Dashboard</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Spelend Leren</title>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+    import { getFirestore, collection, addDoc, getDocs, updateDoc, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyBv4nvU1jBORACQkMZhGnhcXzlMXfFQ-I4",
+      authDomain: "parfum-9f3dd.firebaseapp.com",
+      projectId: "parfum-9f3dd",
+      storageBucket: "parfum-9f3dd.appspot.com",
+      messagingSenderId: "327611693398",
+      appId: "1:327611693398:web:0838f0e60115808744fef7",
+      measurementId: "G-KG9V99E8WE"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    const loginSection = document.getElementById("login-section");
+    const adminSection = document.getElementById("admin-section");
+    const loginForm = document.getElementById("login-form");
+    const logoutBtn = document.getElementById("logout-btn");
+    const perfumeForm = document.getElementById("perfume-form");
+    const perfumeList = document.getElementById("perfume-list");
+    const orderList = document.getElementById("order-list");
+    const statusBox = document.getElementById("status");
+
+    let editId = null;
+
+    onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        const adminEmail = "admin123@gmail.com";
+        if (user.email !== adminEmail) {
+          await signOut(auth);
+          return;
+        }
+        statusBox.innerHTML = `Ingelogd als: <strong>${user.email}</strong>`;
+        loginSection.style.display = "none";
+        adminSection.style.display = "block";
+        loadPerfumes();
+        loadOrders();
+      } else {
+        statusBox.innerHTML = ""; // Verwijderd de "niet ingelogd" tekst
+        loginSection.style.display = "block";
+        adminSection.style.display = "none";
+      }
+    });
+
+    loginForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      try {
+        await signInWithEmailAndPassword(auth, loginForm["email"].value, loginForm["password"].value);
+        loginForm.reset();
+      } catch (err) { alert("Fout: " + err.message); }
+    });
+
+    logoutBtn.addEventListener("click", () => signOut(auth));
+
+    async function loadPerfumes() {
+      perfumeList.innerHTML = "<p>Laden...</p>";
+      const querySnapshot = await getDocs(collection(db, "perfumes"));
+      perfumeList.innerHTML = "";
+      querySnapshot.forEach((docSnap) => {
+        const data = docSnap.data();
+        const div = document.createElement("div");
+        div.className = "perfume-card";
+        div.innerHTML = `
+          <img src="${data.image || 'https://via.placeholder.com/150'}" alt="${data.name}">
+          <div class="perfume-info">
+            <strong>${data.brand} - ${data.name}</strong>
+            <small>${data.gender} | ${data.type}</small>
+            <p style="font-size: 0.8rem; margin: 5px 0;">${data.scent}</p>
+            <span class="price-tag">€${data.price}</span>
+          </div>
+          <div class="card-actions">
+            <button onclick="window.startEdit('${docSnap.id}')" class="btn-edit">Bewerk</button>
+            <button onclick="window.deletePerfume('${docSnap.id}')" class="btn-danger-sm">Verwijder</button>
+          </div>
+        `;
+        perfumeList.appendChild(div);
+      });
+    }
+
+    async function loadOrders() {
+      orderList.innerHTML = "<p>Laden...</p>";
+      const querySnapshot = await getDocs(collection(db, "orders"));
+      orderList.innerHTML = "";
+      const orders = [];
+      querySnapshot.forEach(d => orders.push({id: d.id, ...d.data()}));
+      orders.sort((a,b) => (b.timestamp?.toDate() || 0) - (a.timestamp?.toDate() || 0));
+
+      orders.forEach(order => {
+        const div = document.createElement("div");
+        div.className = `order-card ${order.prepared ? 'is-prepared' : ''}`;
+        div.innerHTML = `
+          <div class="order-header">
+            <strong>Bestelling #${order.id.slice(0,6)}</strong>
+            <span>${order.timestamp?.toDate().toLocaleDateString('nl-NL') || ''}</span>
+          </div>
+          <div class="order-body">
+            <p><strong>Klant:</strong> ${order.name}</p>
+            <p><strong>Items:</strong><br> ${order.items?.map(i => `• ${i.quantity}x ${i.name}`).join('<br>') || 'Geen items'}</p>
+          </div>
+          <div class="order-footer">
+             <label class="checkbox-label">
+                <input type="checkbox" ${order.prepared ? 'checked' : ''} onchange="window.togglePrepared('${order.id}', this.checked)">
+                <span>Voorbereid</span>
+             </label>
+             <button onclick="window.deleteOrder('${order.id}')" class="btn-danger-sm">Wis</button>
+          </div>
+        `;
+        orderList.appendChild(div);
+      });
+    }
+
+    perfumeForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const perfumeData = {
+        name: perfumeForm["name"].value,
+        brand: perfumeForm["brand"].value,
+        price: parseFloat(perfumeForm["price"].value),
+        type: perfumeForm["type"].value,
+        scent: perfumeForm["scent"].value,
+        gender: perfumeForm["gender"].value,
+        image: perfumeForm["image"].value
+      };
+
+      try {
+        if (editId) {
+          await updateDoc(doc(db, "perfumes", editId), perfumeData);
+          editId = null;
+          perfumeForm.querySelector("button").textContent = "Toevoegen";
+        } else {
+          await addDoc(collection(db, "perfumes"), perfumeData);
+        }
+        perfumeForm.reset();
+        loadPerfumes();
+      } catch (err) { alert(err.message); }
+    });
+
+    window.togglePrepared = async (id, status) => {
+      await updateDoc(doc(db, "orders", id), { prepared: status });
+      loadOrders();
+    };
+
+    window.deletePerfume = async (id) => {
+      if(confirm("Verwijderen?")) { await deleteDoc(doc(db, "perfumes", id)); loadPerfumes(); }
+    };
+
+    window.deleteOrder = async (id) => {
+        if(confirm("Order verwijderen?")) { await deleteDoc(doc(db, "orders", id)); loadOrders(); }
+    }
+
+    window.startEdit = async (id) => {
+      const querySnapshot = await getDocs(collection(db, "perfumes"));
+      querySnapshot.forEach(docSnap => {
+        if(docSnap.id === id) {
+          const d = docSnap.data();
+          editId = id;
+          perfumeForm["name"].value = d.name;
+          perfumeForm["brand"].value = d.brand;
+          perfumeForm["price"].value = d.price;
+          perfumeForm["type"].value = d.type;
+          perfumeForm["scent"].value = d.scent;
+          perfumeForm["gender"].value = d.gender || "";
+          perfumeForm["image"].value = d.image || "";
+          perfumeForm.querySelector("button").textContent = "Bijwerken";
+          window.scrollTo(0,0);
+        }
+      });
+    };
+  </script>
+
   <style>
     :root {
-      --bg: #0f1220;
-      --card: #161a2f;
-      --text: #000000;
-      --muted: #828282;
-      --accent: #5ac8fa;
-      --accent-2: #7b61ff;
-      --ring: #ffd166;
-      --shadow: 40, 50, 80;
+      --bg: #0f172a;
+      --card-bg: #1e293b;
+      --accent: #38bdf8;
+      --text: #f1f5f9;
+      --danger: #ef4444;
+      --success: #22c55e;
+      --border: #334155;
     }
 
-    /* Layout */
     body {
-      margin: 0;
-      font-family: system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji";
-      background-color: #ffffff;
+      background: var(--bg);
       color: var(--text);
-      min-height: 100vh;
-      display: grid;
-      grid-template-rows: auto 1fr;
-    }
-
-    header {
-      padding: 24px 20px;
-      max-width: 1100px;
-      margin: 0 auto;
-    }
-
-    header h1 {
-      position: relative;
-      left: 30%;
-      margin: 0 0 6px;
-      font-size: 2rem;
-      letter-spacing: 0.2px;
-    }
-
-    header p {
+      font-family: 'Inter', system-ui, sans-serif;
       margin: 0;
-      color: var(--muted);
-      font-size: 0.95rem;
+      padding: 20px;
     }
 
-    main {
-      max-width: 1100px;
-      width: 100%;
-      margin: 0 auto;
-      padding: 12px 20px 40px;
-    }
-
-    /* Grid */
-    .grid {
-      display: grid;
-      grid-template-columns: repeat(12, 1fr);
-      gap: 18px;
-    }
-
-    @media (max-width: 900px) {
-      .grid { grid-template-columns: repeat(8, 1fr); }
-    }
-
-    @media (max-width: 640px) {
-      .grid { grid-template-columns: repeat(4, 1fr); }
+    .container { max-width: 1100px; margin: auto; }
+    
+    header { 
+      display: flex; 
+      justify-content: space-between; 
+      align-items: center; 
+      margin-bottom: 30px; 
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 15px;
     }
 
     .card {
-      grid-column: span 4; /* 3 cards per row on desktop */
-      background: linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(191, 191, 191, 0));
-      border: 1px solid rgba(255,255,255,0.08);
-      border-radius: 16px;
-      overflow: hidden;
-      position: relative;
-      box-shadow: 0 6px 24px rgba(var(--shadow), 0.25);
-      transition: transform 200ms ease, box-shadow 200ms ease, border-color 200ms ease;
+      background: var(--card-bg);
+      padding: 20px;
+      border-radius: 12px;
+      margin-bottom: 25px;
+      border: 1px solid var(--border);
     }
 
-    @media (max-width: 900px) {
-      .card { grid-column: span 6; } /* 2 per row */
-    }
+    h2 { margin-top: 0; font-size: 1.1rem; color: var(--accent); text-transform: uppercase; letter-spacing: 1px; }
 
-    @media (max-width: 640px) {
-      .card { grid-column: span 4; } /* 1 per row */
-    }
-
-    .card a {
-      display: grid;
-      grid-template-rows: 160px auto;
-      text-decoration: none;
-      color: inherit;
-      height: 100%;
-      outline: none;
-    }
-
-    .thumb {
-      position: relative;
-      overflow: hidden;
-      background: #0b0e1a;
-    }
-
-    .thumb img {
+    input, select {
       width: 100%;
-      height: 100%;
-      object-fit: cover;
-      display: block;
-      transition: transform 300ms ease;
+      padding: 12px;
+      margin-bottom: 15px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      color: white;
+      border-radius: 8px;
+      box-sizing: border-box;
     }
 
-    .info {
-      padding: 14px 16px 16px;
+    button { cursor: pointer; border: none; border-radius: 8px; font-weight: 600; transition: 0.2s; }
+
+    .btn-primary { background: var(--accent); color: #000; width: 100%; padding: 12px; }
+    .btn-danger-sm { background: transparent; border: 1px solid var(--danger); color: var(--danger); padding: 5px 12px; font-size: 0.8rem; }
+    .btn-danger-sm:hover { background: var(--danger); color: white; }
+    .btn-edit { background: var(--accent); color: #000; padding: 5px 12px; font-size: 0.8rem; }
+
+    /* Orders styling - verbeterd */
+    #order-list {
       display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 15px;
+    }
+
+    .order-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      display: flex;
+      flex-direction: column;
+      transition: 0.3s;
+    }
+
+    .order-card.is-prepared {
+      border-color: var(--success);
+      opacity: 0.7;
+    }
+
+    .order-header {
+      padding: 12px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.9rem;
+      background: rgba(56, 189, 248, 0.05);
+    }
+
+    .order-body { padding: 12px; flex-grow: 1; font-size: 0.9rem; }
+    .order-body p { margin: 5px 0; }
+
+    .order-footer {
+      padding: 10px 12px;
+      background: rgba(0,0,0,0.2);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-radius: 0 0 10px 10px;
+    }
+
+    /* Checkbox Styling */
+    .checkbox-label {
+      display: flex;
+      align-items: center;
       gap: 8px;
-      background: linear-gradient(180deg, rgba(255, 255, 255, 0.8), rgba(197, 197, 197, 0.6));
-      backdrop-filter: blur(4px);
+      font-size: 0.85rem;
+      cursor: pointer;
+      color: var(--accent);
     }
 
-    .title {
-      font-weight: 600;
-      letter-spacing: 0.2px;
+    .checkbox-label input { width: 18px; height: 18px; margin: 0; accent-color: var(--accent); }
+
+    /* Perfume Grid */
+    #perfume-list {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+      gap: 20px;
     }
 
-    .meta {
-      color: var(--muted);
-      font-size: 0.9rem;
+    .perfume-card {
+      background: var(--card-bg);
+      border-radius: 12px;
+      overflow: hidden;
+      border: 1px solid var(--border);
     }
 
-    /* Hover/focus effects */
-    .card:hover,
-    .card:focus-within {
-      transform: translateY(-2px);
-      box-shadow: 0 10px 28px rgba(var(--shadow), 0.35);
-      border-color: rgba(255,255,255,0.18);
+    .perfume-card img {
+      width: 100%;
+      height: 160px;
+      object-fit: contain;
+      background: #fff;
+      padding: 10px;
     }
 
-    .card:hover .thumb img,
-    .card:focus-within .thumb img {
-      transform: scale(1.05);
-    }
+    .perfume-info { padding: 15px; }
+    .perfume-info strong { display: block; font-size: 1rem; }
+    .perfume-info small { color: var(--accent); }
+    .price-tag { display: block; font-weight: bold; font-size: 1.1rem; margin-top: 10px; color: var(--success); }
 
-    /* Accent line */
-    .accent {
-      position: absolute;
-      inset: 0;
-      pointer-events: none;
-    }
-    .accent::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  border-radius: 16px;
-  padding: 1px;
-  background: linear-gradient(
-    120deg,
-    transparent 0%,
-    rgba(90,200,250,0.3) 40%,
-    rgba(123,97,255,0.35) 60%,
-    transparent 100%
-  );
-
-  /* Masking voor compatibiliteit */
-  -webkit-mask: 
-    linear-gradient(#000 0 0) content-box,
-    linear-gradient(#000 0 0);
-  -webkit-mask-composite: xor;
-
-  mask: 
-    linear-gradient(#000 0 0) content-box,
-    linear-gradient(#000 0 0);
-  mask-composite: exclude;
-}
-
-
-    /* Focus ring for keyboard users */
-    .card a:focus-visible {
-      box-shadow: 0 0 0 3px var(--ring);
-      border-radius: 14px;
-    }
-
-    /* Footer note */
-    footer {
-      max-width: 1100px;
-      margin: 0 auto;
-      padding: 0 20px 28px;
-      color: var(--muted);
-      font-size: 0.9rem;
-    }
+    .card-actions { padding: 10px 15px; background: rgba(0,0,0,0.2); display: flex; justify-content: space-between; }
   </style>
 </head>
+
 <body>
-  <header>
-    <h1>Slim spelen</h1>
-    <p>Kies een game en ga meteen van start. Alle links openen direct de pagina.</p>
-  </header>
+  <div class="container">
+    <header>
+      <h1>Perfume Admin</h1>
+      <div id="status"></div>
+      <button id="logout-btn" class="btn-danger-sm">Uitloggen</button>
+    </header>
 
-  <main>
-    <section class="grid" aria-label="Game overzicht">
-      <!-- Balloon Game -->
-      <article class="card">
-        <span class="accent" aria-hidden="true"></span>
-        <a href="BalloonGame.html" class="card-link" aria-label="Open Balloon Game">
-          <div class="thumb" aria-hidden="true">
-            <!-- Vervang src met jouw eigen afbeeldingspad -->
-            <img src="assets/balloongame.png" alt="" loading="lazy" />
-          </div>
-          <div class="info">
-            <div class="title">Balloon Game</div>
-            <div class="meta">Reken-uitdaging met tijdsdruk en visuele feedback</div>
-          </div>
-        </a>
-      </article>
-
-      <!-- Topo Game -->
-      <article class="card">
-        <span class="accent" aria-hidden="true"></span>
-        <a href="topo.html" class="card-link" aria-label="Topo game">
-          <div class="thumb" aria-hidden="true">
-            <!-- Vervang src met jouw eigen afbeeldingspad -->
-            <img src="assets/topo.png" alt="" loading="lazy" />
-          </div>
-          <div class="info">
-            <div class="title">Topo Game</div>
-            <div class="meta">Test jou topo-skills met deze game!</div>
-          </div>
-        </a>
-      </article>
-
-      <!-- Turbo Racing -->
-      <article class="card">
-        <span class="accent" aria-hidden="true"></span>
-        <a href="turbo.html" class="card-link" aria-label="Open Turbo Racing">
-          <div class="thumb" aria-hidden="true">
-            <img src="assets/triviagame.png" alt="" loading="lazy" />
-          </div>
-          <div class="info">
-            <div class="title">Turbo Racing</div>
-            <div class="meta">Snelheid, parallax en strakke controles</div>
-          </div>
-        </a>
-      </article>
-
-      <!-- Home / Index -->
-      <article class="card">
-        <span class="accent" aria-hidden="true"></span>
-        <a href="index.html" class="card-link" aria-label="Open Home pagina">
-          <div class="thumb" aria-hidden="true">
-            <img src="assets/spellen.png" alt="" loading="lazy" />
-          </div>
-          <div class="info">
-            <div class="title">Spelling</div>
-            <div class="meta">Lekker spellen!</div>
-          </div>
-        </a>
-      </article>
+    <section id="login-section">
+      <div class="card" style="max-width: 400px; margin: 60px auto;">
+        <h2 style="text-align: center;">Admin Toegang</h2>
+        <form id="login-form">
+          <input type="email" name="email" placeholder="E-mail" required />
+          <input type="password" name="password" placeholder="Wachtwoord" required />
+          <button type="submit" class="btn-primary">Inloggen</button>
+        </form>
+      </div>
     </section>
-  </main>
 
- 
-  <script>
-    // Toetsenbord-activatie (Enter/Space) voor de hele card
-    document.querySelectorAll('.card').forEach(card => {
-      const link = card.querySelector('a.card-link');
+    <section id="admin-section" style="display:none;">
+      <div class="card">
+        <h2>📦 Bestellingen</h2>
+        <div id="order-list"></div>
+      </div>
 
-      card.tabIndex = 0; // maakt de card focusbaar
+      <div class="card">
+        <h2>✨ Product Beheer</h2>
+        <form id="perfume-form">
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+            <input type="text" id="brand" name="brand" placeholder="Merk (bijv. Montblanc)" required />
+            <input type="text" id="name" name="name" placeholder="Naam (bijv. Explorer)" required />
+            <input type="text" id="gender" name="gender" placeholder="Geslacht (Men/Women/Unisex)" required />
+            <input type="text" id="type" name="type" placeholder="Type (bijv. Eau de Parfum)" required />
+            <input type="number" step="0.01" id="price" name="price" placeholder="Prijs (€)" required />
+            <input type="text" id="image" name="image" placeholder="Afbeelding URL" required />
+          </div>
+          <input type="text" id="scent" name="scent" placeholder="Geurnoten (bergamot, lavendel, etc.)" required />
+          <button type="submit" class="btn-primary">Opslaan in Systeem</button>
+        </form>
+      </div>
 
-      card.addEventListener('keydown', (e) => {
-        const isSpace = e.code === 'Space' || e.key === ' ';
-        const isEnter = e.code === 'Enter' || e.key === 'Enter';
-        if (isEnter || isSpace) {
-          e.preventDefault();
-          link.click();
-        }
-      });
-
-      // Cursor hint
-      card.addEventListener('mouseenter', () => card.style.cursor = 'pointer');
-      card.addEventListener('mouseleave', () => card.style.cursor = 'default');
-    });
-
-    // Fallback voor ontbrekende afbeeldingen: toon een gradient background
-    document.querySelectorAll('.thumb img').forEach(img => {
-      img.addEventListener('error', () => {
-        const parent = img.parentElement;
-        parent.style.background = 'linear-gradient(135deg, #1f2447, #101428)';
-        parent.style.display = 'grid';
-        parent.style.placeItems = 'center';
-        parent.innerHTML = '<div style="color:#9aa3b2; font-size:0.95rem;">Geen afbeelding</div>';
-      });
-    });
-  </script>
+      <h2>🧪 Voorraad</h2>
+      <div id="perfume-list"></div>
+    </section>
+  </div>
 </body>
 </html>
