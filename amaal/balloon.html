@@ -14,7 +14,9 @@ String wachtwoord = "Admin123";
 
 void setup() {
   Serial.begin(9600);
-  while (!Serial); // Wacht op Serial Monitor (belangrijk voor Leonardo!)
+  // Terwijl Serial niet open is, gaan we toch door na een korte delay 
+  // om te voorkomen dat hij vastloopt als hij niet aan een PC hangt.
+  delay(2000); 
   
   Serial.println("=== RFID Login Systeem ===");
   Serial.println("Initializing SPI...");
@@ -23,29 +25,19 @@ void setup() {
   
   Serial.println("Initializing MFRC522...");
   mfrc522.PCD_Init();
-  delay(100); // Geef RC522 tijd om op te starten
+  delay(100); 
   
-  // Test of RC522 communiceert
   byte version = mfrc522.PCD_ReadRegister(mfrc522.VersionReg);
   Serial.print("MFRC522 Firmware versie: 0x");
   Serial.println(version, HEX);
   
   if (version == 0x00 || version == 0xFF) {
     Serial.println("⚠️ FOUT: RC522 niet gevonden!");
-    Serial.println("Check je bedrading:");
-    Serial.println("  - SDA -> Pin 10");
-    Serial.println("  - SCK -> ICSP-3");
-    Serial.println("  - MOSI -> ICSP-4");
-    Serial.println("  - MISO -> ICSP-1");
-    Serial.println("  - RST -> Pin 9");
-    Serial.println("  - 3.3V -> 3.3V (NIET 5V!)");
-    Serial.println("  - GND -> GND");
-    while(1); // Stop hier
+    while(1); 
   } else {
     Serial.println("✓ RC522 communicatie OK!");
   }
   
-  // Extra diagnose info
   mfrc522.PCD_DumpVersionToSerial();
   
   Keyboard.begin();
@@ -53,27 +45,22 @@ void setup() {
   Serial.println("\n✓ Systeem gereed!");
   Serial.print("Master kaart UID: ");
   Serial.println(masterCard);
-  Serial.println("\n>>> Houd je kaart/tag DICHT bij de reader <<<");
-  Serial.println(">>> (binnen 3-5 cm) <<<\n");
+  Serial.println("\n>>> Houd je kaart/tag DICHT bij de reader <<<\n");
 }
 
 void loop() {
-  // Check of er een kaart in de buurt is
   if (!mfrc522.PICC_IsNewCardPresent()) {
-    return; // Geen kaart, probeer opnieuw
+    return;
   }
 
-  // Probeer de kaart te lezen
   if (!mfrc522.PICC_ReadCardSerial()) {
-    Serial.println("⚠️ Kaart detectie gefaald - probeer opnieuw");
+    Serial.println("⚠️ Kaart detectie gefaald");
     return;
   }
 
   Serial.println("\n━━━━━━━━━━━━━━━━━━━━━━");
   Serial.println("✓ Kaart gedetecteerd!");
-  Serial.println("━━━━━━━━━━━━━━━━━━━━━━");
 
-  // Bouw UID string op
   String uidStr = "";
   for (byte i = 0; i < mfrc522.uid.size; i++) {
     if (mfrc522.uid.uidByte[i] < 0x10) {
@@ -88,42 +75,41 @@ void loop() {
 
   Serial.print("Gescande UID:  ");
   Serial.println(uidStr);
-  Serial.print("Master kaart:  ");
-  Serial.println(masterCard);
 
-  // Vergelijk met master kaart
   if (uidStr == masterCard) {
     Serial.println("\n✓✓✓ CORRECT! Inloggen... ✓✓✓\n");
     
-    // Type email
+    // --- STAP 1: BEGIN MET TAB ---
+    Keyboard.press(KEY_TAB);
+    Keyboard.releaseAll();
+    delay(200); // Korte pauze zodat de computer de tab verwerkt
+
+    // --- STAP 2: TYPE EMAIL ---
     Keyboard.print(email);
-    delay(50);
+    delay(100);
     
-    // Druk TAB
+    // --- STAP 3: DRUK TAB (naar wachtwoord veld) ---
     Keyboard.press(KEY_TAB); 
     Keyboard.releaseAll();
-    delay(100);
+    delay(200);
 
-    // Type wachtwoord
+    // --- STAP 4: TYPE WACHTWOORD ---
     Keyboard.print(wachtwoord); 
     delay(100);
 
-    // Druk ENTER
+    // --- STAP 5: DRUK ENTER ---
     Keyboard.press(KEY_RETURN);
     Keyboard.releaseAll();
     
     Serial.println("Login credentials verstuurd!");
   } else {
-    Serial.println("\n✗✗✗ FOUT! Onbekende kaart ✗✗✗");
-    Serial.println("Deze kaart is niet geregistreerd.\n");
+    Serial.println("\n✗✗✗ FOUT! Onbekende kaart ✗✗✗\n");
   }
 
-  // Stop communicatie met huidige kaart
   mfrc522.PICC_HaltA();
   
   Serial.println("━━━━━━━━━━━━━━━━━━━━━━");
-  Serial.println("Wacht 2 seconden...");
-  Serial.println("Scan opnieuw mogelijk\n");
+  Serial.println("Wacht 2 seconden voor volgende scan...\n");
   
   delay(2000); 
 }
