@@ -1,442 +1,129 @@
-<!DOCTYPE html>
-<html lang="nl">
-<head>
-<meta charset="UTF-8">
-<title>Luchtballon Rekenspel</title>
-<style>
-body {
-    margin:0;
-    overflow:hidden;
-    font-family: Arial, sans-serif;
+#include <SPI.h>
+#include <MFRC522.h>
+#include <Keyboard.h> 
+
+#define SS_PIN 10
+#define RST_PIN 9
+
+MFRC522 mfrc522(SS_PIN, RST_PIN);
+
+// --- CONFIGURATIE ---
+String masterCard = "29 A2 15 B9"; // Jouw kaart ID
+String email = "admin123@gmail.com";
+String wachtwoord = "Admin123";
+
+void setup() {
+  Serial.begin(9600);
+  while (!Serial); // Wacht op Serial Monitor (belangrijk voor Leonardo!)
+  
+  Serial.println("=== RFID Login Systeem ===");
+  Serial.println("Initializing SPI...");
+  
+  SPI.begin();
+  
+  Serial.println("Initializing MFRC522...");
+  mfrc522.PCD_Init();
+  delay(100); // Geef RC522 tijd om op te starten
+  
+  // Test of RC522 communiceert
+  byte version = mfrc522.PCD_ReadRegister(mfrc522.VersionReg);
+  Serial.print("MFRC522 Firmware versie: 0x");
+  Serial.println(version, HEX);
+  
+  if (version == 0x00 || version == 0xFF) {
+    Serial.println("⚠️ FOUT: RC522 niet gevonden!");
+    Serial.println("Check je bedrading:");
+    Serial.println("  - SDA -> Pin 10");
+    Serial.println("  - SCK -> ICSP-3");
+    Serial.println("  - MOSI -> ICSP-4");
+    Serial.println("  - MISO -> ICSP-1");
+    Serial.println("  - RST -> Pin 9");
+    Serial.println("  - 3.3V -> 3.3V (NIET 5V!)");
+    Serial.println("  - GND -> GND");
+    while(1); // Stop hier
+  } else {
+    Serial.println("✓ RC522 communicatie OK!");
+  }
+  
+  // Extra diagnose info
+  mfrc522.PCD_DumpVersionToSerial();
+  
+  Keyboard.begin();
+  
+  Serial.println("\n✓ Systeem gereed!");
+  Serial.print("Master kaart UID: ");
+  Serial.println(masterCard);
+  Serial.println("\n>>> Houd je kaart/tag DICHT bij de reader <<<");
+  Serial.println(">>> (binnen 3-5 cm) <<<\n");
 }
 
-/* Game area */
-#gameArea {
-    width:100vw;
-    height:100vh;
-    background: linear-gradient(#211641, #175489, #aeddf5);
-    background-size: 100% 5000px;
-    background-repeat: no-repeat;
-    background-position: 0 center;   /* start in het midden */
-    transition: background-position 1s ease;
-    position: relative;
-    overflow: hidden;
-}
+void loop() {
+  // Check of er een kaart in de buurt is
+  if (!mfrc522.PICC_IsNewCardPresent()) {
+    return; // Geen kaart, probeer opnieuw
+  }
 
+  // Probeer de kaart te lezen
+  if (!mfrc522.PICC_ReadCardSerial()) {
+    Serial.println("⚠️ Kaart detectie gefaald - probeer opnieuw");
+    return;
+  }
 
+  Serial.println("\n━━━━━━━━━━━━━━━━━━━━━━");
+  Serial.println("✓ Kaart gedetecteerd!");
+  Serial.println("━━━━━━━━━━━━━━━━━━━━━━");
 
+  // Bouw UID string op
+  String uidStr = "";
+  for (byte i = 0; i < mfrc522.uid.size; i++) {
+    if (mfrc522.uid.uidByte[i] < 0x10) {
+      uidStr += "0";
+    }
+    uidStr += String(mfrc522.uid.uidByte[i], HEX);
+    if (i < mfrc522.uid.size - 1) {
+      uidStr += " ";
+    }
+  }
+  uidStr.toUpperCase();
 
+  Serial.print("Gescande UID:  ");
+  Serial.println(uidStr);
+  Serial.print("Master kaart:  ");
+  Serial.println(masterCard);
 
-
-/* Wolken */
-.cloud {
-    position:absolute;
-    border-radius: 50%;
-    opacity:0.9;
-}
-
-/* Gras onderaan */
-#grass {
-    position:absolute;
-    bottom:0;
-    left:0;
-    width:100%;
-    height:80px;
-    background: linear-gradient(#4CAF50, #2E7D32);
-    z-index:1;
-}
-
-/* Start scherm */
-#startScreen {
-    position:absolute;
-    top:0; left:0;
-    width:100vw;
-    height:100vh;
-    background: radial-gradient(circle at center, #9c8fe0, #4c41b3 80%);
-    color: #ffffff;
-    font-weight: bold;
-    display:flex;
-    flex-direction:column;
-    justify-content:center;
-    align-items:center;
-    font-size:24px;
-    text-align:center;
-    padding:20px;
-    z-index:10;
-}
-
-#startScreen button {
-    padding:15px 30px;
-    font-size:22px;
-    margin-top:20px;
-    cursor:pointer;
-    background-color:#ff4747;
-    color:white;
-    border:none;
-    border-radius:8px;
-}
-#startScreen button:hover {
-  background-color: #f48484;
-}
-
-/* Elementen die pas na start zichtbaar worden */
-#balloon, #pump, #ui, #finish {
-    display:none;
-    z-index:2;
-}
-
-/* Ballon met transition zodat hij langzaam beweegt */
-#balloon {
-    position:absolute;
-    width:120px;
-    height:180px;
-    left:50%;
-    transform:translateX(-50%);
-    transition: top 0.4s ease; /* toegevoegd */
-}
-
-@keyframes flyAway {
-    from { top: 10vh; }
-    to   { top: -200px; } /* helemaal uit beeld */
-}
-
-.balloon-flyaway {
-    animation: flyAway 2s ease-in forwards;
-}
-
-@keyframes crashDown {
-    from { top: 65vh; }
-    to   { top: 120vh; } /* helemaal onder het scherm */
-}
-
-.balloon-crash {
-    animation: crashDown 2.5s ease-in forwards;
-}
-
-
-
-/* Pomper groter gemaakt */
-#pump {
-    position:absolute;
-    bottom: 20px;
-    left:900px;
-    width:160px;
-    height:160px;
-    transition: transform 0.2s ease;
-}
-
-/* Finishline zichtbaar bovenaan */
-
-
-/* UI */
-#ui {
-    position:absolute;
-    bottom:20px;
-    right:20px;
-    padding:20px;
-    background: rgba(255,255,255,0.9);
-    border-radius:10px;
-    text-align:center;
-}
-
-#distance {
-    margin-top:10px;
-    font-size:20px;
-    font-weight:bold;
-    color:#333;
-}
-
-#question {
-    font-size:28px;
-    font-weight:bold;
-    margin-bottom:10px;
-}
-
-input {
-    font-size:24px;
-    padding:5px;
-    width:120px;
-    text-align:center;
-}
-
-/* Win / Lose scherm */
-#loseScreen,
-#winScreen {
-    position:absolute;
-    top:0; left:0;
-    width:100vw;
-    height:100vh;
-    background: rgba(0,0,0,0.75);
-    display:flex;
-    flex-direction:column;
-    justify-content:center;
-    align-items:center;
-    color:white;
-    font-size:40px;
-    display:none;
-}
-
-#loseScreen button,
-#winScreen button {
-    padding:15px 30px;
-    font-size:24px;
-    margin-top:20px;
-    cursor:pointer;
-    background-color:#ff4747;
-    color:white;
-    border:none;
-    border-radius:8px;
-}
-
-/* Pomper animatie */
-.pump-active {
-    transform: scale(1.2);
-}
-</style>
-</head>
-<body>
-
-<div id="gameArea">
-
-    <!-- Gras onderaan -->
+  // Vergelijk met master kaart
+  if (uidStr == masterCard) {
+    Serial.println("\n✓✓✓ CORRECT! Inloggen... ✓✓✓\n");
     
+    // Type email
+    Keyboard.print(email);
+    delay(50);
+    
+    // Druk TAB
+    Keyboard.press(KEY_TAB); 
+    Keyboard.releaseAll();
+    delay(100);
 
-    <!-- Wolken -->
-    <div class="cloud" style="width:100px; height:60px; top:50px; left:100px;">
-        <img src="assets/cloud.png" width="190" height="190" alt="Luchtballon">
-    </div>
-    <div class="cloud" style="width:140px; height:80px; top:120px; left:500px;">
-        <img src="assets/cloud.png" width="220" height="220" alt="Luchtballon">
-    </div>
-    <div class="cloud" style="width:120px; height:70px; top:80px; left:900px;">
-        <img src="assets/cloud.png" width="120" height="120" alt="Luchtballon">
-    </div>
-    <div class="cloud" style="width:120px; height:70px; top:150px; left:1200px;">
-        <img src="assets/cloud.png" width="150" height="150" alt="Luchtballon">
-    </div>
+    // Type wachtwoord
+    Keyboard.print(wachtwoord); 
+    delay(100);
 
-    <!-- Start scherm -->
-    <div id="startScreen">
-    <div>Welkom bij het Luchtballon Rekenspel! 🎈<br><br>
-    Kies een moeilijkheidsgraad:<br></div>
-    <button onclick="startGame('easy')">Makkelijk</button>
-    <button onclick="startGame('normal')">Normaal</button>
-    <button onclick="startGame('hard')">Moeilijk</button>
-</div>
+    // Druk ENTER
+    Keyboard.press(KEY_RETURN);
+    Keyboard.releaseAll();
+    
+    Serial.println("Login credentials verstuurd!");
+  } else {
+    Serial.println("\n✗✗✗ FOUT! Onbekende kaart ✗✗✗");
+    Serial.println("Deze kaart is niet geregistreerd.\n");
+  }
 
-
-    <!-- Finishline -->
-    <div id="finish"></div>
-
-    <!-- Ballon -->
-    <div id="balloon" style="top:40vh;">
-            <img src="assets/balloon.png" width="150" height="180" alt="Luchtballon">
-    </div>
-
-    <!-- Pomper -->
-    <div id="pump">
-        <svg id="cartoonPump" width="160" height="160" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
-            <rect x="50" y="40" width="20" height="60" fill="#8B5A2B" stroke="#5C3D1B" stroke-width="2" rx="4" ry="4"/>
-            <rect x="55" y="10" width="10" height="30" fill="#FF6F61" stroke="#CC4B47" stroke-width="2" rx="2" ry="2"/>
-            <rect x="40" y="0" width="40" height="10" fill="#FF4747" stroke="#CC0000" stroke-width="2" rx="3" ry="3"/>
-            <line x1="60" y1="10" x2="60" y2="60" stroke="#555" stroke-width="4" stroke-linecap="round"/>
-            <circle cx="60" cy="60" r="4" fill="#FF4747" stroke="#CC0000" stroke-width="2"/>
-        </svg>
-    </div>
-
-    <!-- UI -->
-    <div id="ui">
-    <div id="question">?</div>
-    <input id="answer" type="number" autocomplete="off">
-    <div id="distance">Afstand tot crash: 100%</div>
-</div>
-
-    <!-- Win / Lose -->
-    <div id="loseScreen">
-        GAME OVER – Je ballon is gecrasht!
-        <button onclick="tryAgain()">Try Again</button>
-    </div>
-    <div id="winScreen">
-        GEWONNEN! Je hebt de finish gehaald!
-        <button onclick="tryAgain()">Speel opnieuw</button>
-    </div>
-
-</div>
-
-<script>
-// variabelen
-let balloon = document.getElementById("balloon");
-let finish = document.getElementById("finish");
-let pump = document.getElementById("pump");
-let answerInput = document.getElementById("answer");
-let startScreen = document.getElementById("startScreen");
-
-let topPos = 40;              // huidige positie van de ballon (vh)
-let correctAnswer;            // juiste antwoord van de som
-let gameRunning = false;      // status van het spel
-let streak = 0;               // aantal goede antwoorden achter elkaar
-let bgOffset = 0;             // achtergrondpositie
-let difficultySpeed = 0;      // snelheid van constante daling
-let fallInterval;             // interval voor daling
-
-/* Start game */
-function startGame(level) {
-    startScreen.style.display = "none";
-    balloon.style.display = "block";
-    pump.style.display = "block";
-    document.getElementById("ui").style.display = "block";
-    finish.style.display = "block";
-
-    gameRunning = true;
-    topPos = 40;
-    streak = 0;
-    bgOffset = 0;
-    updateBackground();
-    newQuestion();
-    answerInput.focus();
-
-    // Stel moeilijkheidsgraad in
-    if(level === "easy") difficultySpeed = 1;
-    if(level === "normal") difficultySpeed = 2;
-    if(level === "hard") difficultySpeed = 3;
-
-    // Start constante daling
-    clearInterval(fallInterval);
-    fallInterval = setInterval(balloonFall, 1000);
+  // Stop communicatie met huidige kaart
+  mfrc522.PICC_HaltA();
+  
+  Serial.println("━━━━━━━━━━━━━━━━━━━━━━");
+  Serial.println("Wacht 2 seconden...");
+  Serial.println("Scan opnieuw mogelijk\n");
+  
+  delay(2000); 
 }
-
-/* Nieuwe rekenvraag */
-function newQuestion() {
-    const types = ["keer","deel","plus","min"];
-    const choice = types[Math.floor(Math.random()*types.length)];
-    let a,b;
-    if(choice === "keer") {
-        a = Math.floor(Math.random()*12)+1;
-        b = Math.floor(Math.random()*12)+1;
-        correctAnswer = a*b;
-        document.getElementById("question").textContent = `${a} × ${b} = ?`;
-    } else if(choice === "deel") {
-        b = Math.floor(Math.random()*12)+1;
-        correctAnswer = Math.floor(Math.random()*12)+1;
-        a = b * correctAnswer;
-        document.getElementById("question").textContent = `${a} ÷ ${b} = ?`;
-    } else if(choice === "plus") {
-        a = Math.floor(Math.random()*50)+1;
-        b = Math.floor(Math.random()*50)+1;
-        correctAnswer = a + b;
-        document.getElementById("question").textContent = `${a} + ${b} = ?`;
-    } else { // min
-        a = Math.floor(Math.random()*50)+10;
-        b = Math.floor(Math.random()*a)+1;
-        correctAnswer = a - b;
-        document.getElementById("question").textContent = `${a} - ${b} = ?`;
-    }
-}
-
-/* Antwoord indienen */
-function submitAnswer() {
-    if(!gameRunning) return;
-    let user = Number(answerInput.value);
-    answerInput.value = "";
-
-    if(user === correctAnswer){
-        streak++;
-        if(streak >= 8){
-            topPos = 10;
-        } else {
-            topPos -= 8;
-            if(topPos < 10) topPos = 10;
-        }
-        bgOffset += 100;
-        pump.classList.add("pump-active");
-        setTimeout(()=> pump.classList.remove("pump-active"),200);
-    } else {
-        streak = 0;
-        topPos += 8;
-        if(topPos > 85) topPos = 85;
-        bgOffset -= 100;
-    }
-    balloon.style.top = topPos + "vh";
-    updateBackground();
-    updateDistance();   // <<< hier toegevoegd
-    checkGameState();
-    newQuestion();
-}
-
-answerInput.addEventListener("keydown", function(e){
-    if(e.key === "Enter") submitAnswer();
-});
-
-/* Achtergrond updaten */
-function updateBackground(){
-    document.getElementById("gameArea").style.backgroundPosition = `0 calc(50% + ${bgOffset}px)`;
-}
-
-
-/* Constante daling */
-/* Constante daling */
-function balloonFall(){
-    if(!gameRunning) return;
-    topPos += difficultySpeed;
-    if(topPos > 85) topPos = 85;
-    balloon.style.top = topPos + "vh";
-
-    bgOffset -= difficultySpeed * 20;
-    updateBackground();
-    updateDistance();   // <<< hier toegevoegd
-
-    checkGameState();
-}
-
-function updateDistance(){
-    // Crash bij 65vh, start bij 40vh, max 85vh
-    let maxCrash = 65;
-    let remaining = maxCrash - topPos;
-    if(remaining < 0) remaining = 0;
-
-    // Percentage berekenen (hoeveel ruimte nog over)
-    let percent = Math.round((remaining / (maxCrash - 10)) * 100);
-    if(percent < 0) percent = 0;
-    if(percent > 100) percent = 100;
-
-    document.getElementById("distance").textContent = `Afstand tot crash: ${percent}%`;
-}
-
-
-/* Check spelstatus */
-function checkGameState(){
-    if(topPos <= 10){
-        document.getElementById("winScreen").style.display = "flex";
-        balloon.classList.add("balloon-flyaway");
-        endGame();
-    }
-    if(topPos >= 65){
-        document.getElementById("loseScreen").style.display = "flex";
-        balloon.classList.add("balloon-crash");
-        endGame();
-    }
-}
-
-/* Einde spel */
-function endGame(){
-    gameRunning = false;
-    clearInterval(fallInterval);
-}
-
-/* Opnieuw proberen */
-function tryAgain(){
-    document.getElementById("loseScreen").style.display = "none";
-    document.getElementById("winScreen").style.display = "none";
-
-    balloon.classList.remove("balloon-flyaway", "balloon-crash");
-    balloon.style.top = "40vh";
-
-    streak = 0;
-    updateDistance();   // <<< reset indicator
-    startScreen.style.display = "flex";
-}
-</script>
-
-
-</body>
-</html>
