@@ -26,6 +26,7 @@
 
     const loginSection = document.getElementById("login-section");
     const adminSection = document.getElementById("admin-section");
+    const loginForm = document.getElementById("login-form");
     const logoutBtn = document.getElementById("logout-btn");
     const perfumeForm = document.getElementById("perfume-form");
     const perfumeList = document.getElementById("perfume-list");
@@ -33,51 +34,6 @@
     const statusBox = document.getElementById("status");
 
     let editId = null;
-
-    // RFID buffer systeem - vangt alle input op
-    let rfidBuffer = "";
-    let rfidTimeout = null;
-
-    // Luister naar ALLE toetsaanslagen op de pagina
-    document.addEventListener("keypress", (e) => {
-      // Voorkom dat dit interfereert met admin formulieren
-      if (adminSection.style.display === "block") return;
-      
-      // Voeg karakter toe aan buffer
-      if (e.key === "Enter") {
-        // RFID scanner stuurt Enter aan het einde
-        processRFIDScan(rfidBuffer.trim());
-        rfidBuffer = "";
-        clearTimeout(rfidTimeout);
-      } else {
-        rfidBuffer += e.key;
-        
-        // Reset buffer na 500ms inactiviteit
-        clearTimeout(rfidTimeout);
-        rfidTimeout = setTimeout(() => {
-          rfidBuffer = "";
-        }, 500);
-      }
-    });
-
-    async function processRFIDScan(scannedData) {
-      // Hier kun je de gescande data verwerken
-      // Bijvoorbeeld: als de scan een specifiek formaat heeft
-      // Voor nu: automatisch inloggen met de credentials
-      try {
-        await signInWithEmailAndPassword(auth, "admin123@gmail.com", scannedData);
-      } catch (err) { 
-        console.log("RFID scan mislukt");
-        // Toon visuele feedback
-        const instruction = document.querySelector(".rfid-instruction");
-        if (instruction) {
-          instruction.style.borderColor = "var(--danger)";
-          setTimeout(() => {
-            instruction.style.borderColor = "var(--accent)";
-          }, 1000);
-        }
-      }
-    }
 
     onAuthStateChanged(auth, async (user) => {
       if (user) {
@@ -96,6 +52,14 @@
         loginSection.style.display = "block";
         adminSection.style.display = "none";
       }
+    });
+
+    loginForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      try {
+        await signInWithEmailAndPassword(auth, loginForm["email"].value, loginForm["password"].value);
+        loginForm.reset();
+      } catch (err) { alert("Fout: " + err.message); }
     });
 
     logoutBtn.addEventListener("click", () => signOut(auth));
@@ -241,19 +205,40 @@
       justify-content: space-between; 
       align-items: center; 
       margin-bottom: 30px; 
-      border-bottom: 1px solid var(--border);
-      padding-bottom: 15px;
+      border-bottom: 2px solid var(--accent);
+      padding-bottom: 20px;
+      background: linear-gradient(135deg, rgba(56, 189, 248, 0.1) 0%, transparent 100%);
+      padding: 20px;
+      border-radius: 12px;
+    }
+
+    header h1 {
+      margin: 0;
+      color: var(--accent);
+      font-size: 1.8rem;
+      font-weight: 700;
+      text-shadow: 0 0 20px rgba(56, 189, 248, 0.3);
     }
 
     .card {
       background: var(--card-bg);
-      padding: 20px;
+      padding: 25px;
       border-radius: 12px;
       margin-bottom: 25px;
       border: 1px solid var(--border);
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
     }
 
-    h2 { margin-top: 0; font-size: 1.1rem; color: var(--accent); text-transform: uppercase; letter-spacing: 1px; }
+    h2 { 
+      margin-top: 0; 
+      font-size: 1.2rem; 
+      color: var(--accent); 
+      text-transform: uppercase; 
+      letter-spacing: 1.5px; 
+      border-bottom: 2px solid var(--accent);
+      padding-bottom: 10px;
+      margin-bottom: 20px;
+    }
 
     input, select {
       width: 100%;
@@ -268,26 +253,48 @@
 
     button { cursor: pointer; border: none; border-radius: 8px; font-weight: 600; transition: 0.2s; }
 
-    .btn-primary { background: var(--accent); color: #000; width: 100%; padding: 12px; }
+    .btn-primary { 
+      background: var(--accent); 
+      color: #000; 
+      width: 100%; 
+      padding: 12px; 
+      transition: all 0.3s;
+    }
+    
+    .btn-primary:hover {
+      background: #0ea5e9;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(56, 189, 248, 0.4);
+    }
     .btn-danger-sm { background: transparent; border: 1px solid var(--danger); color: var(--danger); padding: 5px 12px; font-size: 0.8rem; }
     .btn-danger-sm:hover { background: var(--danger); color: white; }
-    .btn-edit { background: var(--accent); color: #000; padding: 5px 12px; font-size: 0.8rem; }
+    .btn-edit { 
+      background: var(--accent); 
+      color: #000; 
+      padding: 5px 12px; 
+      font-size: 0.8rem; 
+      transition: all 0.3s;
+    }
+    
+    .btn-edit:hover {
+      background: #0ea5e9;
+      transform: scale(1.05);
+    }
 
     /* RFID instructie styling */
     .rfid-instruction {
       text-align: center;
-      margin: 40px 0;
-      padding: 60px 30px;
+      margin: 25px 0;
+      padding: 40px 25px;
       background: rgba(56, 189, 248, 0.1);
       border: 3px dashed var(--accent);
       border-radius: 16px;
-      transition: border-color 0.3s;
     }
 
     .rfid-instruction svg {
-      width: 120px;
-      height: 120px;
-      margin-bottom: 25px;
+      width: 100px;
+      height: 100px;
+      margin-bottom: 20px;
       fill: var(--accent);
       animation: pulse 2s infinite;
       filter: drop-shadow(0 0 20px rgba(56, 189, 248, 0.5));
@@ -299,23 +306,40 @@
     }
 
     .rfid-instruction h3 {
-      margin: 0 0 15px 0;
+      margin: 0 0 12px 0;
       color: var(--accent);
-      font-size: 1.8rem;
+      font-size: 1.6rem;
       font-weight: 700;
     }
 
     .rfid-instruction p {
-      margin: 8px 0;
+      margin: 6px 0;
       color: var(--text);
       opacity: 0.9;
-      font-size: 1.1rem;
+      font-size: 1.05rem;
     }
 
     .rfid-instruction .subtitle {
-      font-size: 0.95rem;
+      font-size: 0.9rem;
       opacity: 0.6;
-      margin-top: 20px;
+      margin-top: 15px;
+    }
+
+    /* VERBERG login form visueel maar behoud functionaliteit */
+    #login-form {
+      position: absolute;
+      left: -9999px;
+      opacity: 0;
+    }
+
+    /* Verberg logout button op login pagina */
+    #login-section ~ header #logout-btn {
+      display: none;
+    }
+
+    body:has(#admin-section[style*="display:block"]) header #logout-btn,
+    body:has(#admin-section[style*="display: block"]) header #logout-btn {
+      display: inline-block;
     }
 
     /* Orders styling */
@@ -331,7 +355,13 @@
       border-radius: 10px;
       display: flex;
       flex-direction: column;
-      transition: 0.3s;
+      transition: transform 0.3s, box-shadow 0.3s;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    }
+
+    .order-card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 6px 12px rgba(56, 189, 248, 0.2);
     }
 
     .order-card.is-prepared {
@@ -383,6 +413,14 @@
       border-radius: 12px;
       overflow: hidden;
       border: 1px solid var(--border);
+      transition: transform 0.3s, box-shadow 0.3s;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    }
+
+    .perfume-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 8px 16px rgba(56, 189, 248, 0.3);
+      border-color: var(--accent);
     }
 
     .perfume-card img {
@@ -407,11 +445,11 @@
     <header>
       <h1>Perfume Admin</h1>
       <div id="status"></div>
-      <button id="logout-btn" class="btn-danger-sm">Uitloggen</button>
+      <button id="logout-btn" class="btn-danger-sm" style="display:none;">Uitloggen</button>
     </header>
 
     <section id="login-section">
-      <div class="card" style="max-width: 500px; margin: 80px auto;">
+      <div class="card" style="max-width: 450px; margin: 40px auto;">
         <h2 style="text-align: center;">🔐 BEVEILIGDE TOEGANG</h2>
         
         <div class="rfid-instruction">
@@ -422,6 +460,12 @@
           <p>Houd de kaart dicht bij de reader</p>
           <p class="subtitle">Alleen geautoriseerde kaarten hebben toegang</p>
         </div>
+
+        <form id="login-form">
+          <input type="email" name="email" placeholder="E-mail" required />
+          <input type="password" name="password" placeholder="Wachtwoord" required />
+          <button type="submit" class="btn-primary">Inloggen</button>
+        </form>
       </div>
     </section>
 
@@ -447,9 +491,27 @@
         </form>
       </div>
 
-      <h2>🧪 Voorraad</h2>
+      <h2>🧪 Collectie</h2>
       <div id="perfume-list"></div>
     </section>
   </div>
+
+  <script>
+    // Toon logout button alleen als admin sectie zichtbaar is
+    const observer = new MutationObserver(() => {
+      const adminSection = document.getElementById("admin-section");
+      const logoutBtn = document.getElementById("logout-btn");
+      if (adminSection.style.display === "block") {
+        logoutBtn.style.display = "inline-block";
+      } else {
+        logoutBtn.style.display = "none";
+      }
+    });
+
+    observer.observe(document.getElementById("admin-section"), {
+      attributes: true,
+      attributeFilter: ["style"]
+    });
+  </script>
 </body>
 </html>
